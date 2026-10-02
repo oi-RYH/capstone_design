@@ -19,6 +19,8 @@
 | 세트칼라(고정링) | C-SCSAW10-10 | 슬릿형, Ø6 ↔ Ø10 mm[^spec] | 2개 | [미스미](https://kr.misumi-ec.com/vona2/detail/110310346949/?HissuCode=C-SCSAW10-10) |
 | 커플링 | E-LMPL20-6-10 | 내경 Ø10 mm, 폭 10 mm, 슬릿형[^spec] | 2개 | [미스미](https://kr.misumi-ec.com/vona2/detail/110310701099/?HissuCode=E-LMPL20-6-10) |
 
+- 기존 커플링 사용으로 커플링은 추후 구매 고려
+
 ## 3. 청소 관련 소모품
 
 | 품목 | 제품명 | 규격 및 구성 | 구매 수량 | 구매 링크 |
