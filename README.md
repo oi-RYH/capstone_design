@@ -132,7 +132,7 @@ flowchart TD
 
 | 문서 | 내용 |
 | --- | --- |
-| [1주차 회의록](<Meeting notes/[2026.09.13] meeting.md>) | 캡스톤 아이디어 브레인스토밍 |
-| [2주차 회의록](<Meeting notes/[2026.09.21] meeting.md>) | 자동 캐리어 세척 구조 구체화 |
-| [회의록 템플릿](<Meeting notes/_template.md>) | 공통 회의록 작성 형식 |
+| [1주차 회의록](<meeting-notes/2026-09-13-meeting.md>) | 캡스톤 아이디어 브레인스토밍 |
+| [2주차 회의록](<meeting-notes/2026-09-21-meeting.md>) | 자동 캐리어 세척 구조 구체화 |
+| [회의록 템플릿](<meeting-notes/template.md>) | 공통 회의록 작성 형식 |
 | [커밋 메시지 규칙](commit-convention.md) | Conventional Commits 기반 커밋 규칙 |
