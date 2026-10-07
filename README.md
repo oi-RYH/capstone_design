@@ -136,3 +136,5 @@ flowchart TD
 | [2주차 회의록](<meeting-notes/2026-09-21-meeting.md>) | 자동 캐리어 세척 구조 구체화 |
 | [회의록 템플릿](<meeting-notes/template.md>) | 공통 회의록 작성 형식 |
 | [커밋 메시지 규칙](commit-convention.md) | Conventional Commits 기반 커밋 규칙 |
+| [파일 네이밍 규칙](file-naming-convention.md) | kebab-case 기반 네이밍 규칙 |
+| [브랜치 작업 규칙](branch-convention.md) | 브랜치 작업에 관한 규칙 |
