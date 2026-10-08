@@ -14,6 +14,8 @@
 
   - 물 사용 자체가 힘들 가능성 높음 (고장 문제 등)
 - 이미지
+  <img width="1659" height="988" alt="image" src="https://github.com/user-attachments/assets/7ca579ea-88a7-46d7-b54f-901b7e454c6a" />
+  <img width="1024" height="1011" alt="image" src="https://github.com/user-attachments/assets/0df7e141-1f7b-4ee2-94aa-706f65f9d954" />
 
 
 - 참고자료[www.youtube.com/watch?v=uTMwjMkNwh0](https://www.youtube.com/watch?v=uTMwjMkNwh0)
@@ -39,3 +41,5 @@
   - 네이비 : 캐리어 닦는 브러쉬
   - 연두색 : 소독약을 뿜어내는 통
   - 하늘색 : 소독젤/소독약
+  <img width="970" height="924" alt="image" src="https://github.com/user-attachments/assets/28596270-650d-43ae-ae48-82fc4d092028" />
+
