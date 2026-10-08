@@ -14,6 +14,8 @@
 
   - 물 사용 자체가 힘들 가능성 높음 (고장 문제 등)
 - 이미지
+
+
 - 참고자료[www.youtube.com/watch?v=uTMwjMkNwh0](https://www.youtube.com/watch?v=uTMwjMkNwh0)
 
 ## 캐리어 몸체 청소
