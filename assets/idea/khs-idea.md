@@ -1,4 +1,4 @@
-# [ 기존아이디어 ~9/21 ]
+<img width="1659" height="988" alt="image" src="https://github.com/user-attachments/assets/85a3fe03-6164-411e-b8ad-180f2dc0ef3b" /># [ 기존아이디어 ~9/21 ]
 
 
 ## 캐리어 바퀴 청소
@@ -17,9 +17,9 @@
 
 
 
-- 이미지![1791436471086](image/khs-idea/1791436471086.png)
-
-	![1791436605351](image/khs-idea/1791436605351.png)
+- 이미지
+  <img width="1659" height="988" alt="image" src="https://github.com/user-attachments/assets/15216d88-9a0b-470c-bd60-4ad5e4318d4b" />
+  <img width="1024" height="1011" alt="image" src="https://github.com/user-attachments/assets/e48fce57-36f5-4690-a5f3-8d942d9e77cc" />
 
 
 - 참고자료[www.youtube.com/watch?v=uTMwjMkNwh0](https://www.youtube.com/watch?v=uTMwjMkNwh0)
@@ -47,5 +47,5 @@
   - 네이비 : 캐리어 닦는 브러쉬
   - 연두색 : 소독약을 뿜어내는 통
   - 하늘색 : 소독젤/소독약
+	<img width="970" height="924" alt="image" src="https://github.com/user-attachments/assets/418ca234-6144-40a8-90d0-0b91f4ee4530" />
 
-	![1791437365169](image/khs-idea/1791437365169.png)
