@@ -64,7 +64,7 @@ tc.addEventListener('objectChange', () => {
       readTransform(f.g, f.g.userData.entry);
     }
   }
-  showSnapHint(label);
+  showSnapHint(label, true);
   fillTransformInputs();
   selBox.update();
   scheduleRefresh();
@@ -150,16 +150,18 @@ function renderPropsStatus() {
   const msg = state.analysis.problems.get(e.id);
   box.hidden = false;
   box.className = msg ? 'status bad' : 'status ok';
+  $('detach').hidden = true;
   if (msg) { box.textContent = msg; return; }
   const h = state.analysis.hosts.get(e.id);
   const names = h ? [...h].map(id => state.objects.find(o => o.id === id)?.name ?? id) : [];
   box.textContent = names.length ? `고정됨: ${names.join(', ')}` : '규칙 위반 없음';
+  $('detach').hidden = !names.length;
 }
 
-function showSnapHint(label) {
+function showSnapHint(label, withTip = false) {
   const el = $('snap-hint');
   el.hidden = !label;
-  if (label) el.textContent = label;
+  if (label) el.textContent = withTip ? `${label} (Option/Alt 를 누른 채 끌면 자석 없이 움직임)` : label;
 }
 
 // ---------------- 장면 다루기 ----------------
@@ -490,6 +492,22 @@ $('p-name').addEventListener('change', () => {
 });
 $('prop-form').addEventListener('submit', ev => ev.preventDefault());
 $('dup').onclick = duplicateSelected;
+// 떼어내기: 붙어 있는 대상에서 위로 100 mm 들어 올린다 (붙어 있던 하위 부품은 같이 올라감)
+$('detach').onclick = () => {
+  const e = selectedEntry();
+  if (!e) return;
+  const ids = [e.id, ...followersOf(e.id, state.analysis, state.objects)];
+  for (const id of ids) {
+    const o = state.objects.find(x => x.id === id);
+    o.position = [o.position[0], Math.round((o.position[1] + 100) * 100) / 100, o.position[2]];
+    applyTransform(state.groups.get(id), o);
+  }
+  fillTransformInputs();
+  selBox.update();
+  commit();
+  showSnapHint('위로 100 mm 들어 올려서 떼어냈습니다');
+  setTimeout(() => showSnapHint(null), 2000);
+};
 $('del').onclick = deleteSelected;
 
 // ---------------- 기어 연결 ----------------

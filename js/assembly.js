@@ -348,14 +348,16 @@ export function snapEntry(entry, objects, exclude) {
       if (ln.holeIsPoint) {
         // 샤프트: 구멍 중심이 샤프트 선 위에, 샤프트 길이 안에 오도록
         const rel = ln.p.clone().sub(pose.p), ax = rel.dot(a);
+        const lim = me.L / 2;
+        if (Math.abs(ax) > lim + SNAP) continue;   // 축 방향으로 빼냈으면 붙이지 않음
         const perp = rel.clone().addScaledVector(a, -ax);
         pose.p.add(perp);
-        const lim = me.L / 2;
         if (Math.abs(ax) > lim) pose.p.addScaledVector(a, ax - Math.sign(ax) * lim);
         consider(perp.length(), pose, `베어링에 끼움: ${ln.name}`);
       } else {
         // 축 부품: 부품 중심이 샤프트 선 위에, 샤프트 범위 안에 오도록
         const rel = pose.p.clone().sub(ln.p), ax = rel.dot(ln.d);
+        if (ax < ln.lo - SNAP || ax > ln.hi + SNAP) continue;   // 축 끝 밖으로 빼냈으면 붙이지 않음
         const perp = rel.clone().addScaledVector(ln.d, -ax);
         pose.p.sub(perp);
         const axc = THREE.MathUtils.clamp(ax, ln.lo, ln.hi);
