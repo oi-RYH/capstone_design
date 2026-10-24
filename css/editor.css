@@ -122,3 +122,6 @@ table.bom td:last-child{text-align:right;font-variant-numeric:tabular-nums;width
 #token-form .row{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
 #token-form input{height:32px;border:1px solid var(--line);border-radius:5px;padding:0 8px}
 .dlg-actions{display:flex;gap:6px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap}
+.panel.left h2{display:flex;align-items:center;justify-content:space-between}
+.btn.small{height:24px;padding:0 8px;font-size:12px;font-weight:400}
+#prop-form .actions{flex-wrap:wrap}

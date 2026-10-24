@@ -291,6 +291,52 @@ function duplicateSelected() {
   commit();
 }
 
+// ---------------- 복사 / 붙여넣기 ----------------
+// 선택한 부품과 거기에 붙어 있는 부품(따라오는 부품)을 함께 복사한다.
+// 클립보드는 이 브라우저에 저장되어 새로고침하거나 다른 탭에서도 붙여넣을 수 있다.
+const CLIP_KEY = 'carrycarry-clipboard';
+let clip = null, pasteCount = 0;
+try { clip = JSON.parse(localStorage.getItem(CLIP_KEY) || 'null'); } catch { clip = null; }
+
+function copySelected() {
+  const e = selectedEntry();
+  if (!e) return;
+  const ids = [e.id, ...followersOf(e.id, state.analysis, state.objects)];
+  clip = { objects: ids.map(id => structuredClone(state.objects.find(o => o.id === id))) };
+  pasteCount = 0;
+  try { localStorage.setItem(CLIP_KEY, JSON.stringify(clip)); } catch {}
+  flashHint(ids.length > 1 ? `복사: 「${e.name}」 + 붙어 있는 부품 ${ids.length - 1}개` : `복사: 「${e.name}」`);
+}
+
+function paste() {
+  if (!clip?.objects?.length) { flashHint('복사한 부품이 없습니다'); return; }
+  pasteCount++;
+  const off = 40 * pasteCount;
+  const added = [];
+  for (const src of clip.objects) {
+    if (!ASSET_MAP[src.asset]) continue;
+    const entry = structuredClone(src);
+    entry.id = uniqueId(src.asset);
+    entry.name = uniqueName(src.name);
+    entry.position = [src.position[0] + off, src.position[1], src.position[2] + off];
+    state.objects.push(entry);
+    addGroup(entry);
+    added.push(entry);
+  }
+  if (!added.length) return;
+  renderOutliner();
+  select(added[0].id);
+  commit();
+  flashHint(added.length > 1 ? `붙여넣기: 부품 ${added.length}개` : `붙여넣기: 「${added[0].name}」`);
+}
+
+let hintTimer = null;
+function flashHint(text) {
+  showSnapHint(text);
+  clearTimeout(hintTimer);
+  hintTimer = setTimeout(() => showSnapHint(null), 2000);
+}
+
 function deleteSelected() {
   if (state.selectedLinkId) return deleteLink(state.selectedLinkId);
   const id = state.selectedId;
@@ -520,6 +566,8 @@ $('p-name').addEventListener('change', () => {
 });
 $('prop-form').addEventListener('submit', ev => ev.preventDefault());
 $('dup').onclick = duplicateSelected;
+$('copy').onclick = copySelected;
+$('paste').onclick = paste;
 // 떼어내기: 붙어 있는 대상에서 위로 100 mm 들어 올린다 (붙어 있던 하위 부품은 같이 올라감)
 $('detach').onclick = () => {
   const e = selectedEntry();
@@ -798,6 +846,8 @@ window.addEventListener('keydown', e => {
   const mod = e.metaKey || e.ctrlKey;
   if (mod && e.key.toLowerCase() === 'z') { e.preventDefault(); (e.shiftKey ? $('redo') : $('undo')).click(); return; }
   if (mod && e.key.toLowerCase() === 'd') { e.preventDefault(); duplicateSelected(); return; }
+  if (mod && e.key.toLowerCase() === 'c') { if (state.selectedId) { e.preventDefault(); copySelected(); } return; }
+  if (mod && e.key.toLowerCase() === 'v') { e.preventDefault(); paste(); return; }
   if (mod) return;
   switch (e.key.toLowerCase()) {
     case 'w': setMode('translate'); break;

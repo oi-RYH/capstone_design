@@ -41,7 +41,7 @@
 </header>
 
 <aside class="panel left" aria-label="에셋">
-  <h2>에셋</h2>
+  <h2>에셋 <button type="button" class="btn small" id="paste" title="복사한 부품 붙여넣기 (Cmd/Ctrl+V)">붙여넣기</button></h2>
   <p class="help">눌러서 장면에 추가합니다. 끌어서 다른 부품 근처로 가져가면 결합 위치에 자석처럼 붙고, 브라켓과 볼트는 자동으로 생깁니다.</p>
   <div id="assets"></div>
 </aside>
@@ -85,6 +85,7 @@
       </fieldset>
       <div class="actions">
         <button type="button" class="btn" id="detach" title="붙어 있는 대상에서 위로 들어 올려 떼어내기" hidden>떼어내기</button>
+        <button type="button" class="btn" id="copy" title="복사 (Cmd/Ctrl+C)">복사</button>
         <button type="button" class="btn" id="dup" title="복제 (Cmd/Ctrl+D)">복제</button>
         <button type="button" class="btn danger" id="del" title="삭제 (Delete)">삭제</button>
       </div>
@@ -126,6 +127,7 @@
       <dt>Option + 드래그</dt><dd>자석 끄고 자유롭게 이동 (Windows 는 Alt)</dd>
       <dt>Shift + 클릭</dt><dd>두 번째 부품 선택 (기어 연결)</dd>
       <dt>F</dt><dd>선택한 부품으로 화면 맞추기</dd>
+      <dt>Cmd+C / V</dt><dd>복사 / 붙여넣기 (붙어 있는 부품 포함)</dd>
       <dt>Cmd+D</dt><dd>복제</dd>
       <dt>Delete</dt><dd>삭제</dd>
       <dt>Cmd+Z</dt><dd>되돌리기</dd>
