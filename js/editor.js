@@ -4,9 +4,9 @@ import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { ASSETS, ASSET_MAP, resolveParams } from './assets.js';
 import {
   createViewport, fetchScene, normalizeScene, emptyScene, buildObject,
-  applyTransform, readTransform, frameObjects, pickObject, renderHardware, markProblem,
+  applyTransform, readTransform, frameObjects, pickObject, renderHardware, markProblem, renderLinks,
 } from './scene.js';
-import { analyze, snapEntry, followersOf } from './assembly.js';
+import { analyze, snapEntry, followersOf, canGear, MODULES } from './assembly.js';
 
 const DRAFT_KEY = 'carrycarry-scene-draft';
 const $ = id => document.getElementById(id);
@@ -20,6 +20,9 @@ const state = {
   analysis: null,       // 조립 판정 결과
   drag: null,           // 드래그 중 따라오는 부품
   alt: false,           // Alt 누르는 동안 자석 끄기
+  links: [],            // 기어 연결 (scene.json 의 links)
+  selectedLinkId: null, // 선택한 기어 연결
+  secondId: null,       // Shift+클릭으로 고른 두 번째 부품
 };
 const history = { stack: [], index: -1 };
 
@@ -76,7 +79,10 @@ tc.addEventListener('mouseUp', () => {
 const selBox = new THREE.BoxHelper(undefined, 0xffb400);
 selBox.visible = false;
 view.scene.add(selBox);
-view.onTick(() => { if (selBox.visible) selBox.update(); });
+const secondBox = new THREE.BoxHelper(undefined, 0x2f6fd0);
+secondBox.visible = false;
+view.scene.add(secondBox);
+view.onTick(() => { if (selBox.visible) selBox.update(); if (secondBox.visible) secondBox.update(); });
 
 // ---------------- 조립 판정 ----------------
 let refreshQueued = false;
@@ -87,12 +93,15 @@ function scheduleRefresh() {
 }
 
 function refreshAssembly() {
-  const a = state.analysis = analyze(state.objects);
+  const a = state.analysis = analyze(state.objects, state.links);
   renderHardware(view, a.hardware);
+  renderLinks(view, a.gears, a.linkProblems);
   for (const [id, g] of state.groups) markProblem(g, a.problems.has(id));
-  for (const li of $('outliner').children) li.classList.toggle('bad', a.problems.has(li.dataset.id));
+  for (const li of $('outliner').children) {
+    li.classList.toggle('bad', li.dataset.link ? a.linkProblems.has(li.dataset.link) : a.problems.has(li.dataset.id));
+  }
 
-  const n = a.problems.size;
+  const n = a.problems.size + a.linkProblems.size;
   $('warn-count').textContent = n ? `${n}개` : '';
   const ul = $('warnings');
   ul.innerHTML = '';
@@ -106,6 +115,15 @@ function refreshAssembly() {
       li.querySelector('b').textContent = e?.name ?? id;
       li.querySelector('span').textContent = msg;
       li.onclick = () => select(id);
+      ul.appendChild(li);
+    }
+    for (const [id, msg] of a.linkProblems) {
+      const l = state.links.find(x => x.id === id);
+      const li = document.createElement('li');
+      li.innerHTML = `<b></b><span></span>`;
+      li.querySelector('b').textContent = l ? linkName(l) : id;
+      li.querySelector('span').textContent = msg;
+      li.onclick = () => selectLink(id);
       ul.appendChild(li);
     }
   }
@@ -122,6 +140,7 @@ function refreshAssembly() {
   for (const x of a.joints) j[x.type]++;
   $('joint-sum').textContent = `T자 ${j.T} · ㄱ자 ${j.L} · 일자 ${j.I}`;
   renderPropsStatus();
+  renderLinkInfo();
 }
 
 function renderPropsStatus() {
@@ -144,17 +163,19 @@ function showSnapHint(label) {
 }
 
 // ---------------- 장면 다루기 ----------------
-function snapshot() { return JSON.stringify(state.objects); }
+function snapshot() { return JSON.stringify({ o: state.objects, l: state.links }); }
 
-function loadObjects(objects, { keepSelection = false } = {}) {
-  const prevSel = state.selectedId;
+function loadObjects(objects, links = [], { keepSelection = false } = {}) {
+  const prevSel = state.selectedId, prevLink = state.selectedLinkId;
   select(null);
   for (const g of state.groups.values()) view.root.remove(g);
   state.groups.clear();
   state.objects = objects;
+  state.links = links;
   for (const e of state.objects) addGroup(e);
   renderOutliner();
   if (keepSelection && prevSel && state.groups.has(prevSel)) select(prevSel);
+  else if (keepSelection && prevLink && state.links.some(l => l.id === prevLink)) selectLink(prevLink);
 }
 
 function addGroup(entry) {
@@ -193,7 +214,8 @@ function commit() {
 
 function restore(i) {
   history.index = i;
-  loadObjects(JSON.parse(history.stack[i]), { keepSelection: true });
+  const snap = JSON.parse(history.stack[i]);
+  loadObjects(snap.o, snap.l, { keepSelection: true });
   afterChange();
 }
 
@@ -203,9 +225,13 @@ function afterChange() {
   const dirty = snapshot() !== state.baseline;
   $('dirty').textContent = dirty ? '저장 안 한 변경 있음' : '';
   try {
-    if (dirty) localStorage.setItem(DRAFT_KEY, JSON.stringify({ version: 1, units: 'mm', objects: state.objects }));
+    if (dirty) localStorage.setItem(DRAFT_KEY, JSON.stringify(sceneData()));
     else localStorage.removeItem(DRAFT_KEY);
   } catch { /* 브라우저 저장소를 못 쓰는 환경 */ }
+}
+
+function sceneData() {
+  return { version: 1, units: 'mm', objects: state.objects, links: state.links };
 }
 
 function updateUndoButtons() {
@@ -260,12 +286,14 @@ function duplicateSelected() {
 }
 
 function deleteSelected() {
+  if (state.selectedLinkId) return deleteLink(state.selectedLinkId);
   const id = state.selectedId;
   if (!id) return;
   select(null);
   view.root.remove(state.groups.get(id));
   state.groups.delete(id);
   state.objects = state.objects.filter(o => o.id !== id);
+  state.links = state.links.filter(l => l.a !== id && l.b !== id); // 그 부품에 걸린 기어 연결도 삭제
   renderOutliner();
   commit();
 }
@@ -277,6 +305,8 @@ function selectedEntry() {
 // ---------------- 선택 ----------------
 function select(id) {
   state.selectedId = id;
+  state.selectedLinkId = null;
+  setSecond(null, true);
   const g = id ? state.groups.get(id) : null;
   if (g) {
     tc.attach(g);
@@ -286,9 +316,33 @@ function select(id) {
     tc.detach();
     selBox.visible = false;
   }
-  for (const li of $('outliner').children) li.classList.toggle('sel', li.dataset.id === id);
+  markOutlinerSelection();
+  renderProps();
+}
+
+function markOutlinerSelection() {
+  for (const li of $('outliner').children) {
+    li.classList.toggle('sel', li.dataset.link ? li.dataset.link === state.selectedLinkId : li.dataset.id === state.selectedId);
+    li.classList.toggle('second', !!li.dataset.id && li.dataset.id === state.secondId);
+  }
   const sel = $('outliner').querySelector('.sel');
   if (sel) sel.scrollIntoView({ block: 'nearest' });
+}
+
+// Shift+클릭으로 두 번째 부품 고르기 (기어 연결용)
+function setSecond(id, silent = false) {
+  if (id && id === state.selectedId) id = null;
+  state.secondId = id;
+  const g = id ? state.groups.get(id) : null;
+  secondBox.visible = !!g;
+  if (g) secondBox.setFromObject(g);
+  if (!silent) { markOutlinerSelection(); renderProps(); }
+}
+
+function selectLink(id) {
+  select(null);
+  state.selectedLinkId = id;
+  markOutlinerSelection();
   renderProps();
 }
 
@@ -299,7 +353,9 @@ view.renderer.domElement.addEventListener('pointerup', e => {
   const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y) > 4;
   if (!moved && !down.onGizmo) {
     const g = pickObject(view, e.clientX, e.clientY);
-    select(g ? g.userData.entry.id : null);
+    if (g?.userData.link) selectLink(g.userData.link.id);
+    else if (g && e.shiftKey && state.selectedId) setSecond(g.userData.entry.id);
+    else select(g ? g.userData.entry.id : null);
   }
   down = null;
 });
@@ -342,16 +398,34 @@ function renderOutliner() {
     li.textContent = o.name;
     li.title = `${o.name} (${ASSET_MAP[o.asset]?.name ?? o.asset})`;
     if (o.id === state.selectedId) li.classList.add('sel');
-    li.onclick = () => select(o.id);
+    li.onclick = ev => (ev.shiftKey && state.selectedId ? setSecond(o.id) : select(o.id));
+    ul.appendChild(li);
+  }
+  for (const l of state.links) {
+    const li = document.createElement('li');
+    li.dataset.link = l.id;
+    li.className = 'link';
+    li.textContent = linkName(l);
+    if (l.id === state.selectedLinkId) li.classList.add('sel');
+    li.onclick = () => selectLink(l.id);
     ul.appendChild(li);
   }
 }
 
+function linkName(l) {
+  const n = id => state.objects.find(o => o.id === id)?.name ?? '(없음)';
+  return `기어: ${n(l.a)} ↔ ${n(l.b)}`;
+}
+
 function renderProps() {
   const e = selectedEntry();
-  $('no-sel').hidden = !!e;
+  const link = state.links.find(l => l.id === state.selectedLinkId);
+  $('no-sel').hidden = !!e || !!link;
   $('prop-form').hidden = !e;
+  $('link-form').hidden = !link;
+  if (link) return renderLinkForm(link);
   if (!e) return;
+  renderPairBox(e);
   const a = ASSET_MAP[e.asset];
   $('p-name').value = e.name;
   $('p-asset').textContent = a ? `${a.name}, ${a.spec}` : `알 수 없는 에셋: ${e.asset}`;
@@ -418,6 +492,143 @@ $('prop-form').addEventListener('submit', ev => ev.preventDefault());
 $('dup').onclick = duplicateSelected;
 $('del').onclick = deleteSelected;
 
+// ---------------- 기어 연결 ----------------
+function renderPairBox(e) {
+  const box = $('pair');
+  const second = state.objects.find(o => o.id === state.secondId);
+  if (!canGear(e)) { box.hidden = true; return; }
+  box.hidden = false;
+  if (!second) {
+    box.innerHTML = '<p class="help">Shift+클릭으로 두 번째 샤프트나 모터를 고르면 기어로 연결할 수 있습니다.</p>';
+    return;
+  }
+  box.innerHTML = '<p class="help">두 번째 선택: <b></b></p>';
+  box.querySelector('b').textContent = second.name;
+  if (!canGear(second)) {
+    box.insertAdjacentHTML('beforeend', '<p class="help">기어는 샤프트나 모터 출력축끼리만 연결할 수 있습니다.</p>');
+    return;
+  }
+  if (state.links.some(l => (l.a === e.id && l.b === second.id) || (l.a === second.id && l.b === e.id))) {
+    box.insertAdjacentHTML('beforeend', '<p class="help">이미 기어로 연결되어 있습니다.</p>');
+    return;
+  }
+  const btn = Object.assign(document.createElement('button'), { type: 'button', className: 'btn primary', textContent: '기어로 연결' });
+  btn.onclick = () => createGearLink(e.id, second.id);
+  box.appendChild(btn);
+}
+
+function createGearLink(a, b) {
+  let n = 1;
+  while (state.links.some(l => l.id === `gear-${n}`)) n++;
+  const link = { id: `gear-${n}`, type: 'gear', a, b, ratio: [1, 1], module: 'auto', pos: null };
+  state.links.push(link);
+  renderOutliner();
+  selectLink(link.id);
+  commit();
+}
+
+function deleteLink(id) {
+  state.links = state.links.filter(l => l.id !== id);
+  state.selectedLinkId = null;
+  renderOutliner();
+  renderProps();
+  commit();
+}
+
+function currentGear() {
+  return state.analysis?.gears.find(g => g.link.id === state.selectedLinkId) || null;
+}
+
+function renderLinkForm(link) {
+  const n = id => state.objects.find(o => o.id === id)?.name ?? '(없음)';
+  $('l-a').textContent = n(link.a);
+  $('l-b').textContent = n(link.b);
+  $('l-ra').value = link.ratio[0];
+  $('l-rb').value = link.ratio[1];
+  $('l-module').value = String(link.module);
+  renderLinkInfo();
+}
+
+function renderLinkInfo() {
+  const link = state.links.find(l => l.id === state.selectedLinkId);
+  if (!link || $('link-form').hidden) return;
+  const g = currentGear();
+  const msg = state.analysis?.linkProblems.get(link.id);
+  const st = $('l-status');
+  st.className = msg ? 'status bad' : 'status ok';
+  st.textContent = msg || '정상적으로 맞물림';
+  const info = $('l-info');
+  if (g?.zA) {
+    const real = (g.zA / g.zB).toFixed(3);
+    info.textContent = `모듈 ${g.m}, ${g.zA}T ↔ ${g.zB}T, 이폭 ${g.w} mm. 실제 기어비 1 : ${real}, 축 간 거리 ${g.D.toFixed(1)} mm (필요 ${g.need.toFixed(1)} mm)`;
+  } else info.textContent = '';
+  $('l-fix').hidden = !(g?.zA && g.distErr > 0.25);
+  const pos = $('l-pos');
+  if (g?.zA && g.hi - g.lo >= g.w) {
+    pos.disabled = false;
+    pos.min = Math.round(g.lo + g.w / 2); pos.max = Math.round(g.hi - g.w / 2);
+    if (document.activeElement !== pos) pos.value = Math.round(g.s);
+  } else pos.disabled = true;
+}
+
+function updateLink(patch, done = true) {
+  const link = state.links.find(l => l.id === state.selectedLinkId);
+  if (!link) return;
+  Object.assign(link, patch);
+  if (done) commit(); else scheduleRefresh();
+}
+$('l-ra').onchange = () => updateLink({ ratio: [Math.max(0.1, Number($('l-ra').value) || 1), state.links.find(l => l.id === state.selectedLinkId).ratio[1]] });
+$('l-rb').onchange = () => updateLink({ ratio: [state.links.find(l => l.id === state.selectedLinkId).ratio[0], Math.max(0.1, Number($('l-rb').value) || 1)] });
+$('l-module').onchange = () => updateLink({ module: $('l-module').value === 'auto' ? 'auto' : Number($('l-module').value) });
+$('l-pos').oninput = () => updateLink({ pos: Number($('l-pos').value) }, false);
+$('l-pos').onchange = () => updateLink({ pos: Number($('l-pos').value) });
+$('l-del').onclick = () => deleteLink(state.selectedLinkId);
+$('l-swap').onclick = () => {
+  const link = state.links.find(l => l.id === state.selectedLinkId);
+  updateLink({ a: link.b, b: link.a, ratio: [link.ratio[1], link.ratio[0]], pos: null });
+  renderProps();
+};
+for (const opt of ['auto', ...MODULES]) {
+  $('l-module').append(new Option(opt === 'auto' ? '자동' : `모듈 ${opt}`, String(opt)));
+}
+
+// 축 간 거리 맞추기: B 쪽(안 되면 A 쪽) 부품이나 그 부품을 받치는 부품을 옮겨 본다.
+// 다른 규칙을 깨지 않으면서 기어가 맞물리는 첫 번째 방법을 쓴다.
+$('l-fix').onclick = () => {
+  const link = state.links.find(l => l.id === state.selectedLinkId);
+  const g = currentGear();
+  if (!link || !g?.zA) return;
+  const delta = g.need - g.D;
+  const before = state.analysis.problems.size;
+  const chain = id => {
+    const out = [id], seen = new Set([id]);
+    for (let i = 0; i < out.length; i++) {
+      for (const h of state.analysis.hosts.get(out[i]) || []) if (!seen.has(h)) { seen.add(h); out.push(h); }
+    }
+    return out;
+  };
+  const tries = [];
+  for (const id of chain(link.b)) tries.push({ id, v: g.u.clone().multiplyScalar(delta) });
+  for (const id of chain(link.a)) tries.push({ id, v: g.u.clone().multiplyScalar(-delta) });
+  for (const t of tries) {
+    const objs = structuredClone(state.objects);
+    const moving = [t.id, ...followersOf(t.id, state.analysis, state.objects)];
+    for (const o of objs) if (moving.includes(o.id)) o.position = o.position.map((p, i) => Math.round((p + t.v.getComponent(i)) * 100) / 100);
+    const res = analyze(objs, state.links);
+    const lp = res.linkProblems.get(link.id);
+    if (res.problems.size <= before && !lp) {
+      const name = state.objects.find(o => o.id === t.id)?.name ?? t.id;
+      loadObjects(objs, state.links);
+      selectLink(link.id);
+      commit();
+      showSnapHint(`「${name}」를 ${Math.abs(delta).toFixed(1)} mm 옮겨서 맞췄습니다`);
+      setTimeout(() => showSnapHint(null), 2500);
+      return;
+    }
+  }
+  showMsg(`자동으로 맞출 수 있는 위치가 없습니다.<br>두 축 사이를 ${g.need.toFixed(1)} mm 로 직접 맞추거나, 기어비나 모듈을 바꿔 보세요.`);
+};
+
 // ---------------- 툴바 ----------------
 function setMode(mode) {
   tc.setMode(mode);
@@ -445,7 +656,7 @@ $('undo').onclick = () => { if (history.index > 0) restore(history.index - 1); }
 $('redo').onclick = () => { if (history.index < history.stack.length - 1) restore(history.index + 1); };
 
 $('export').onclick = () => {
-  const data = { version: 1, units: 'mm', objects: state.objects };
+  const data = sceneData();
   const blob = new Blob([JSON.stringify(data, null, 2) + '\n'], { type: 'application/json' });
   const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'scene.json' });
   a.click();
@@ -462,7 +673,7 @@ $('file').onchange = async () => {
   if (!f) return;
   try {
     const data = normalizeScene(JSON.parse(await f.text()));
-    loadObjects(data.objects);
+    loadObjects(data.objects, data.links);
     commit();
     frameObjects(view, view.root.children);
   } catch (err) {
@@ -491,7 +702,7 @@ window.addEventListener('keydown', e => {
     case 'w': setMode('translate'); break;
     case 'e': setMode('rotate'); break;
     case 'f': { const g = state.groups.get(state.selectedId); frameObjects(view, g ? [g] : view.root.children); break; }
-    case 'escape': select(null); break;
+    case 'escape': select(null); renderProps(); break;
     case 'delete': case 'backspace': e.preventDefault(); deleteSelected(); break;
   }
 });
@@ -516,7 +727,7 @@ async function loadFromRepo() {
     data = emptyScene();
     showMsg(`<b>scene.json 을 불러오지 못해 빈 장면으로 시작합니다.</b><br>${err.message}<br><small>파일을 더블클릭해서 열었다면 터미널에서 <code>python3 -m http.server</code> 실행 후 http://localhost:8000/editor.html 로 열어 주세요.</small>`);
   }
-  loadObjects(data.objects);
+  loadObjects(data.objects, data.links);
   state.baseline = snapshot();
   resetHistory();
   afterChange();
@@ -532,11 +743,11 @@ try { draft = normalizeScene(JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null
 
 await loadFromRepo();
 
-if (draft && JSON.stringify(draft.objects) !== state.baseline) {
+if (draft && JSON.stringify({ o: draft.objects, l: draft.links }) !== state.baseline) {
   try { localStorage.setItem(DRAFT_KEY, JSON.stringify(draft)); } catch {}
   $('banner').hidden = false;
   $('draft-restore').onclick = () => {
-    loadObjects(draft.objects);
+    loadObjects(draft.objects, draft.links);
     commit();
     $('banner').hidden = true;
   };

@@ -114,7 +114,7 @@ function ends(A) {
 }
 
 // ---------------- 판정 ----------------
-export function analyze(objects) {
+export function analyze(objects, links = []) {
   const items = objects.map(derive);
   const profiles = items.filter(i => i.kind === 'profile');
   const problems = new Map();   // id -> 메시지
@@ -230,6 +230,11 @@ export function analyze(objects) {
     if (!hosts.has(P.e.id)) problems.set(P.e.id, P.asset.couplesMotor ? '샤프트나 모터 출력축에 끼워져 있지 않음' : '샤프트에 끼워져 있지 않음');
   }
 
+  // 기어 연결
+  const byId = new Map(items.map(i => [i.e.id, i]));
+  const gears = links.filter(l => l.type === 'gear').map(l => solveGear(l, byId));
+  const linkProblems = new Map(gears.filter(g => g.msg).map(g => [g.link.id, g.msg]));
+
   // 부품표
   const bom = new Map();
   const addBom = (name, n = 1) => bom.set(name, (bom.get(name) || 0) + n);
@@ -241,8 +246,12 @@ export function analyze(objects) {
   }
   for (const h of hardware) addBom(HARDWARE[h.type].name);
   for (const [k, n] of extra) addBom(k, n);
+  for (const g of gears) if (g.zA) {
+    addBom(`평기어 모듈 ${g.m} ${g.zA}T`);
+    addBom(`평기어 모듈 ${g.m} ${g.zB}T`);
+  }
 
-  return { problems, hosts, hardware, joints, bom };
+  return { problems, hosts, hardware, joints, bom, gears, linkProblems };
 }
 
 // ---------------- 따라오는 부품 ----------------
@@ -371,4 +380,85 @@ export function snapEntry(entry, objects, exclude) {
   if (!best) return null;
   setPose(entry, best.pose);
   return best.label;
+}
+
+// ---------------- 기어 ----------------
+export const MODULES = [0.5, 0.8, 1, 1.25, 1.5, 2, 2.5, 3];
+const Z_MIN = 12, Z_MAX = 150;
+const GEAR_TOL = 0.25;     // 축 간 거리 허용 오차 (mm)
+
+// 기어를 끼울 수 있는 축 (샤프트, 모터 출력축)
+function axisOf(it) {
+  if (!it) return null;
+  if (it.kind === 'shaft') return { p: it.c, d: it.a, lo: -it.L / 2, hi: it.L / 2, bore: 5 };
+  if (it.kind === 'motor') return { p: it.front.p, d: it.front.d, lo: 0, hi: it.front.len, bore: 3 };
+  return null;
+}
+export function canGear(entry) {
+  const k = ASSET_MAP[entry?.asset]?.kind;
+  return k === 'shaft' || k === 'motor';
+}
+
+// 축 간 거리 D, 기어비 r (= B 회전수 / A 회전수 = zA / zB) 에 맞는 모듈과 잇수
+export function pickTeeth(D, r, module = 'auto') {
+  const mods = module === 'auto' ? MODULES : [Number(module)];
+  let best = null;
+  for (const m of mods) {
+    const n0 = Math.round((2 * D) / m);
+    for (const N of [n0 - 1, n0, n0 + 1]) {
+      const zB = Math.round(N / (1 + r)), zA = N - zB;
+      if (zA < Z_MIN || zB < Z_MIN || zA > Z_MAX || zB > Z_MAX) continue;
+      const need = (m * (zA + zB)) / 2;
+      const distErr = Math.abs(need - D);
+      const ratioErr = Math.abs(zA / zB - r) / r;
+      // 기어비 오차 2% 이내는 거의 같게 보고, 모듈은 1 에 가까운 쪽을 선호
+      const score = distErr * 4 + Math.max(0, ratioErr - 0.02) * 40 + ratioErr * 5 + (module === 'auto' ? Math.abs(m - 1) * 0.3 : 0);
+      if (!best || score < best.score) best = { m, zA, zB, need, distErr, ratioErr, score };
+    }
+  }
+  return best;
+}
+
+function solveGear(link, byId) {
+  const out = { link };
+  const A = byId.get(link.a), B = byId.get(link.b);
+  const ax = axisOf(A), bx = axisOf(B);
+  if (!ax || !bx) { out.msg = '연결할 축(샤프트, 모터)이 없음'; return out; }
+  if (Math.abs(ax.d.dot(bx.d)) < PAR) { out.msg = '두 축이 평행하지 않음 (평기어는 평행한 축끼리만)'; return out; }
+
+  // 두 축이 축 방향으로 겹치는 구간 (A 축 기준 좌표)
+  const proj = t => bx.p.clone().addScaledVector(bx.d, t).sub(ax.p).dot(ax.d);
+  const b1 = proj(bx.lo), b2 = proj(bx.hi);
+  const lo = Math.max(ax.lo, Math.min(b1, b2)), hi = Math.min(ax.hi, Math.max(b1, b2));
+  const pA0 = ax.p.clone().addScaledVector(ax.d, (lo + hi) / 2);
+  const relB = pA0.clone().sub(bx.p);
+  const footB = bx.p.clone().addScaledVector(bx.d, relB.dot(bx.d));
+  const D = pA0.distanceTo(footB);
+  out.D = D;
+  if (D < 5) { out.msg = '두 축이 같은 선 위에 있음 (커플링으로 연결해야 함)'; return out; }
+
+  const ratio = Math.max(0.05, (link.ratio?.[1] ?? 1) / (link.ratio?.[0] ?? 1));
+  const t = pickTeeth(D, ratio, link.module ?? 'auto');
+  if (!t) { out.msg = `이 거리(${D.toFixed(1)} mm)와 기어비로 만들 수 있는 기어가 없음 (잇수 ${Z_MIN}~${Z_MAX})`; return out; }
+  Object.assign(out, t);
+  out.w = Math.min(20, Math.max(6, Math.round(t.m * 10)));
+  out.lo = lo; out.hi = hi;
+
+  if (hi - lo < out.w) { out.msg = `두 축이 축 방향으로 겹치는 구간이 기어 폭(${out.w} mm)보다 짧음`; }
+  else if (t.distErr > GEAR_TOL) {
+    out.msg = `축 간 거리 ${D.toFixed(1)} mm, 맞물리려면 ${t.need.toFixed(1)} mm 필요 (${(t.need - D > 0 ? '+' : '') + (t.need - D).toFixed(1)} mm)`;
+  }
+
+  // 기어 위치 (축 방향): link.pos 가 있으면 그 위치, 없으면 겹치는 구간 가운데
+  const half = out.w / 2;
+  const sA = THREE.MathUtils.clamp(link.pos ?? (lo + hi) / 2, lo + half, Math.max(lo + half, hi - half));
+  out.s = sA;
+  const cA = ax.p.clone().addScaledVector(ax.d, sA);
+  const cB = bx.p.clone().addScaledVector(bx.d, cA.clone().sub(bx.p).dot(bx.d));
+  const u = cB.clone().sub(cA).normalize();
+  out.u = u;
+  out.matA = basisMatrix(cA, ax.d, u);
+  out.matB = basisMatrix(cB, ax.d, u.clone().negate());
+  out.boreA = ax.bore; out.boreB = bx.bore;
+  return out;
 }

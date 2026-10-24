@@ -317,3 +317,35 @@ export function resolveParams(asset, params = {}) {
   }
   return out;
 }
+
+// ------------------------------------------------------------------
+// 평기어 (기어 연결에서 자동으로 만들어짐)
+// z: 잇수, m: 모듈, width: 이폭, phase: 이빨 회전 오프셋(rad), bore: 축 구멍 반지름
+// 로컬 X 가 회전축, 원점이 기어 가운데, 각도 0 인 이빨이 +Y 방향
+// ------------------------------------------------------------------
+export const GEAR_MAT = new THREE.MeshStandardMaterial({ color: 0xc9a14a, metalness: 0.5, roughness: 0.35 });
+export function buildGear(z, m, width, phase = 0, bore = 5) {
+  const ra = m * (z + 2) / 2, rf = m * (z - 2.5) / 2, pa = (Math.PI * 2) / z;
+  const s = new THREE.Shape();
+  const pt = (r, th) => [-r * Math.sin(th), r * Math.cos(th)];
+  for (let i = 0; i < z; i++) {
+    const th = phase + i * pa;
+    const pts = [pt(rf, th - 0.27 * pa), pt(ra, th - 0.12 * pa), pt(ra, th + 0.12 * pa), pt(rf, th + 0.27 * pa)];
+    pts.forEach((p, k) => (i === 0 && k === 0 ? s.moveTo(...p) : s.lineTo(...p)));
+  }
+  s.closePath();
+  const hole = new THREE.Path();
+  hole.absarc(0, 0, bore, 0, Math.PI * 2, true);
+  s.holes.push(hole);
+  const g = new THREE.ExtrudeGeometry(s, { depth: width, bevelEnabled: false, curveSegments: 16 });
+  g.rotateY(Math.PI / 2);
+  g.translate(-width / 2, 0, 0);
+  const grp = new THREE.Group();
+  grp.add(new THREE.Mesh(g, GEAR_MAT));
+  const hubR = Math.min(rf * 0.7, bore + 7);
+  if (hubR > bore + 1.5) {
+    const hub = cylX(hubR, width + 8, GEAR_MAT, 28);
+    grp.add(hub);
+  }
+  return grp;
+}

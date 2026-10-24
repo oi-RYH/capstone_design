@@ -85,3 +85,18 @@ details[open] summary::after{content:" 접기"}
 table.bom{width:100%;border-collapse:collapse;font-size:12px}
 table.bom td{padding:4px 2px;border-bottom:1px solid var(--hover)}
 table.bom td:last-child{text-align:right;font-variant-numeric:tabular-nums;width:40px}
+
+/* 기어 연결 */
+.pair{margin:8px 0 4px;padding:8px 10px;border:1px dashed var(--line);border-radius:6px}
+.pair .help{margin:0 0 6px}
+#outliner li.second{box-shadow:inset 3px 0 0 var(--accent);background:#eaf1fb}
+#outliner li.link{color:#8a6a1f}
+#outliner li.link.sel{color:#fff}
+#link-form .row{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);margin-top:10px}
+#link-form select{height:30px;border:1px solid var(--line);border-radius:5px;padding:0 6px;background:var(--panel)}
+#link-form input[type=range]{width:100%}
+.link-title{font-weight:700;margin:0 0 2px}
+.ratio{display:flex;align-items:center;gap:6px}
+.ratio label{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted)}
+.ratio input{width:64px;height:30px;border:1px solid var(--line);border-radius:5px;padding:0 6px}
+#link-form .actions{flex-wrap:wrap}

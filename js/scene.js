@@ -1,7 +1,7 @@
 // 뷰어와 편집 페이지가 함께 쓰는 3D 장면 코드
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { ASSET_MAP, HARDWARE, resolveParams } from './assets.js';
+import { ASSET_MAP, HARDWARE, resolveParams, buildGear } from './assets.js';
 
 export const SCENE_URL = 'scene.json';
 
@@ -18,7 +18,7 @@ export const SCENE_URL = 'scene.json';
 // }
 
 export function emptyScene() {
-  return { version: 1, units: 'mm', objects: [] };
+  return { version: 1, units: 'mm', objects: [], links: [] };
 }
 
 export async function fetchScene(url = SCENE_URL) {
@@ -39,6 +39,14 @@ export function normalizeScene(data) {
       params: { ...(o.params || {}) },
       position: vec3(o.position),
       rotation: vec3(o.rotation),
+    })),
+    links: (Array.isArray(data.links) ? data.links : []).map((l, i) => ({
+      id: String(l.id ?? `link-${i + 1}`),
+      type: String(l.type ?? 'gear'),
+      a: String(l.a), b: String(l.b),
+      ratio: [Number(l.ratio?.[0]) || 1, Number(l.ratio?.[1]) || 1],
+      module: l.module === 'auto' || l.module == null ? 'auto' : Number(l.module),
+      pos: Number.isFinite(Number(l.pos)) && l.pos !== null ? Number(l.pos) : null,
     })),
   };
 }
@@ -127,6 +135,9 @@ export function createViewport(container, { background = 0xe9edf0, gridColor = 0
   const root = new THREE.Group();
   root.name = 'objects';
   scene.add(root);
+  const linkRoot = new THREE.Group();
+  linkRoot.name = 'links';
+  scene.add(linkRoot);
 
   function resize() {
     const w = container.clientWidth, h = container.clientHeight;
@@ -146,7 +157,7 @@ export function createViewport(container, { background = 0xe9edf0, gridColor = 0
     renderer.render(scene, camera);
   });
 
-  return { renderer, scene, camera, controls, root, grid, onTick: fn => tickers.push(fn) };
+  return { renderer, scene, camera, controls, root, linkRoot, grid, onTick: fn => tickers.push(fn) };
 }
 
 // 장면 전체가 화면에 들어오도록 카메라 맞추기
@@ -172,10 +183,10 @@ export function pickObject(view, clientX, clientY) {
   );
   const ray = new THREE.Raycaster();
   ray.setFromCamera(ndc, view.camera);
-  const hits = ray.intersectObjects(view.root.children, true);
+  const hits = ray.intersectObjects([...view.root.children, ...view.linkRoot.children], true);
   for (const h of hits) {
     let o = h.object;
-    while (o && !o.userData.entry) o = o.parent;
+    while (o && !o.userData.entry && !o.userData.link) o = o.parent;
     if (o) return o;
   }
   return null;
@@ -207,4 +218,30 @@ export function markProblem(group, bad) {
     if (!o.userData.baseMat) o.userData.baseMat = o.material;
     o.material = bad ? RED : o.userData.baseMat;
   });
+}
+
+// ---------------- 기어 연결 그리기 ----------------
+const gearCache = new Map();
+function cachedGear(z, m, w, phase, bore) {
+  const k = [z, m, w, phase.toFixed(5), bore].join('|');
+  if (!gearCache.has(k)) gearCache.set(k, buildGear(z, m, w, phase, bore));
+  return gearCache.get(k).clone();
+}
+export function renderLinks(view, gears, problems = new Map()) {
+  view.linkRoot.clear();
+  for (const g of gears) {
+    if (!g.zA || !g.matA) continue;
+    const grp = new THREE.Group();
+    grp.userData.link = g.link;
+    const a = cachedGear(g.zA, g.m, g.w, 0, g.boreA);
+    const b = cachedGear(g.zB, g.m, g.w, Math.PI / g.zB, g.boreB);
+    for (const [obj, mat] of [[a, g.matA], [b, g.matB]]) {
+      obj.matrixAutoUpdate = false;
+      obj.matrix.copy(mat);
+      obj.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+      grp.add(obj);
+    }
+    markProblem(grp, problems.has(g.link.id));
+    view.linkRoot.add(grp);
+  }
 }

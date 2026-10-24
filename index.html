@@ -33,22 +33,25 @@
 <div id="msg" class="msg" hidden></div>
 
 <script type="module">
-import { createViewport, fetchScene, buildObject, frameObjects, pickObject, renderHardware, markProblem } from './js/scene.js';
+import { createViewport, fetchScene, buildObject, frameObjects, pickObject, renderHardware, markProblem, renderLinks } from './js/scene.js';
 import { analyze } from './js/assembly.js';
 import { ASSET_MAP } from './js/assets.js';
 
 const view = createViewport(document.getElementById('view'));
 const tip = document.getElementById('tip');
-let problems = new Map();
+let problems = new Map(), gears = [];
 
 try {
   const data = await fetchScene();
   for (const e of data.objects) view.root.add(buildObject(e));
-  const a = analyze(data.objects);
+  const a = analyze(data.objects, data.links);
   renderHardware(view, a.hardware);
+  renderLinks(view, a.gears, a.linkProblems);
   for (const g of view.root.children) markProblem(g, a.problems.has(g.userData.entry.id));
   problems = a.problems;
-  const warn = a.problems.size ? `, 경고 ${a.problems.size}개` : '';
+  gears = a.gears;
+  const nw = a.problems.size + a.linkProblems.size;
+  const warn = nw ? `, 경고 ${nw}개` : '';
   document.getElementById('count').textContent = `부품 ${data.objects.length}개, 체결 부품 ${a.hardware.length}개${warn}`;
   frameObjects(view, view.root.children);
 } catch (err) {
@@ -62,6 +65,14 @@ document.getElementById('fit').onclick = () => frameObjects(view, view.root.chil
 view.renderer.domElement.addEventListener('pointermove', e => {
   const o = pickObject(view, e.clientX, e.clientY);
   if (!o) { tip.style.display = 'none'; return; }
+  if (o.userData.link) {
+    const g = gears.find(x => x.link === o.userData.link);
+    tip.innerHTML = `평기어 연결<small>모듈 ${g.m}, ${g.zA}T ↔ ${g.zB}T</small>`;
+    tip.style.display = 'block';
+    tip.style.left = (e.clientX + 14) + 'px';
+    tip.style.top = (e.clientY + 14) + 'px';
+    return;
+  }
   const ent = o.userData.entry, a = ASSET_MAP[ent.asset];
   const len = ent.params?.length ? `, 길이 ${ent.params.length} mm` : '';
   const p = problems.get(ent.id);

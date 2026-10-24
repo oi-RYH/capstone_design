@@ -64,6 +64,7 @@
       <label class="row">이름 <input type="text" id="p-name"></label>
       <p class="spec" id="p-asset"></p>
       <p id="p-status" class="status" hidden></p>
+      <div id="pair" class="pair" hidden></div>
       <div id="p-params"></div>
       <fieldset>
         <legend>위치 (mm)</legend>
@@ -86,6 +87,28 @@
         <button type="button" class="btn danger" id="del" title="삭제 (Delete)">삭제</button>
       </div>
     </form>
+    <form id="link-form" hidden autocomplete="off" onsubmit="return false">
+      <p class="link-title">기어 연결</p>
+      <p class="spec"><b id="l-a"></b> ↔ <b id="l-b"></b></p>
+      <p id="l-status" class="status"></p>
+      <fieldset>
+        <legend>기어비 (회전수 비율)</legend>
+        <div class="ratio">
+          <label>앞 <input type="number" id="l-ra" min="0.1" step="0.5"></label>
+          <span>:</span>
+          <label>뒤 <input type="number" id="l-rb" min="0.1" step="0.5"></label>
+        </div>
+        <p class="help">앞쪽이 1바퀴 돌 때 뒤쪽이 도는 바퀴 수. 1 : 2 는 2배 빨라짐(증속), 2 : 1 은 절반(감속).</p>
+      </fieldset>
+      <label class="row">모듈 (이빨 크기) <select id="l-module"></select></label>
+      <label class="row">기어 위치 (축 방향) <input type="range" id="l-pos"></label>
+      <p class="spec" id="l-info"></p>
+      <div class="actions">
+        <button type="button" class="btn primary" id="l-fix" hidden>거리 맞추기</button>
+        <button type="button" class="btn" id="l-swap" title="앞뒤 바꾸기">앞뒤 바꾸기</button>
+        <button type="button" class="btn danger" id="l-del">연결 삭제</button>
+      </div>
+    </form>
   </section>
   <section>
     <details>
@@ -99,6 +122,7 @@
     <dl>
       <dt>W / E</dt><dd>이동 / 회전</dd>
       <dt>Alt + 드래그</dt><dd>자석 끄고 자유롭게 이동</dd>
+      <dt>Shift + 클릭</dt><dd>두 번째 부품 선택 (기어 연결)</dd>
       <dt>F</dt><dd>선택한 부품으로 화면 맞추기</dd>
       <dt>Cmd+D</dt><dd>복제</dd>
       <dt>Delete</dt><dd>삭제</dd>
