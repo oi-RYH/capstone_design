@@ -115,6 +115,7 @@ export const ASSETS = [
     spec: '단면 20 × 20 mm',
     kind: 'profile',
     params: { length: { label: '길이', unit: 'mm', min: 20, max: 3000, step: 1, default: 600 } },
+    previewParams: { length: 70 },
     build: ({ length }) => {
       const g = new THREE.ExtrudeGeometry(profile2020Shape(), { depth: length, bevelEnabled: false });
       g.rotateY(Math.PI / 2);
@@ -166,6 +167,7 @@ export const ASSETS = [
     spec: '지름 10 mm. 베어링에 끼워야 함',
     kind: 'shaft',
     params: { length: { label: '길이', unit: 'mm', min: 10, max: 1500, step: 1, default: 300 } },
+    previewParams: { length: 90 },
     build: ({ length }) => cylX(5, length, M.steel, 24),
   },
   {
@@ -186,6 +188,31 @@ export const ASSETS = [
     onLen: 25,
     couplesMotor: true,
     build: () => cylX(10, 25, M.steel, 28),
+  },
+  {
+    id: 'hub-6mm',
+    name: '모터 허브 6mm (D형)',
+    category: '구동',
+    spec: '6mm D컷 축용 알루미늄 허브, M3 탭 6개, 무두볼트 2개. 외경 약 22 mm (근사치). 모터 출력축이나 샤프트에 끼우고, 플랜지에 기어를 나사로 고정',
+    kind: 'onshaft',
+    onLen: 10,
+    couplesMotor: true,
+    gearMount: { lo: 5, hi: 25, bore: 3 },   // 플랜지 바깥면(x=5)부터 기어를 달 수 있는 구간
+    previewRot: [0, -0.6, 0],
+    build: () => {
+      const g = new THREE.Group();
+      g.add(at(cylX(11, 4, M.aluminum, 48), 3, 0, 0));      // 플랜지 Ø22 × 4
+      g.add(at(cylX(6, 6, M.aluminum, 32), -2, 0, 0));      // 보스 Ø12 × 6
+      g.add(at(cylX(3.05, 10.2, M.dark, 20), 0, 0, 0));      // 6mm 구멍
+      for (let i = 0; i < 6; i++) {                          // M3 탭 6개 (PCD 16)
+        const th = (i / 6) * Math.PI * 2;
+        g.add(at(cylX(1.25, 4.2, M.dark, 12), 3, Math.cos(th) * 8, Math.sin(th) * 8));
+      }
+      const set = new THREE.Mesh(new THREE.CylinderGeometry(1.25, 1.25, 3, 12), M.black); // 무두볼트
+      set.position.set(-2, 5.2, 0);
+      g.add(set);
+      return g;
+    },
   },
   {
     id: 'motor-37',
@@ -263,6 +290,7 @@ export const ASSETS = [
     spec: 'EPDM 보온재 13T + 청소포, 외경 약 40 mm. 샤프트에 끼움',
     kind: 'onshaft',
     params: { length: { label: '길이', unit: 'mm', min: 20, max: 1000, step: 1, default: 120 } },
+    previewParams: { length: 70 },
     build: ({ length }) => cylX(20, length, M.cloth),
   },
 

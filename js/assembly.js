@@ -392,13 +392,14 @@ const GEAR_TOL = 0.25;     // 축 간 거리 허용 오차 (mm)
 // 기어를 끼울 수 있는 축 (샤프트, 모터 출력축)
 function axisOf(it) {
   if (!it) return null;
+  if (it.asset?.gearMount) { const gm = it.asset.gearMount; return { p: it.c, d: it.a, lo: gm.lo, hi: gm.hi, bore: gm.bore }; }
   if (it.kind === 'shaft') return { p: it.c, d: it.a, lo: -it.L / 2, hi: it.L / 2, bore: 5 };
   if (it.kind === 'motor') return { p: it.front.p, d: it.front.d, lo: 0, hi: it.front.len, bore: 3 };
   return null;
 }
 export function canGear(entry) {
-  const k = ASSET_MAP[entry?.asset]?.kind;
-  return k === 'shaft' || k === 'motor';
+  const a = ASSET_MAP[entry?.asset];
+  return a?.kind === 'shaft' || a?.kind === 'motor' || !!a?.gearMount;
 }
 
 // 축 간 거리 D, 기어비 r (= B 회전수 / A 회전수 = zA / zB) 에 맞는 모듈과 잇수

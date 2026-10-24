@@ -7,6 +7,9 @@ import {
   applyTransform, readTransform, frameObjects, pickObject, renderHardware, markProblem, renderLinks,
 } from './scene.js';
 import { analyze, snapEntry, followersOf, canGear, MODULES } from './assembly.js';
+import { makeThumbnails, PHOTO_DIR } from './thumbs.js';
+
+const THUMBS = makeThumbnails();
 
 const DRAFT_KEY = 'carrycarry-scene-draft';
 const $ = id => document.getElementById(id);
@@ -376,7 +379,8 @@ function renderAssets() {
       const b = document.createElement('button');
       b.type = 'button';
       b.className = 'asset';
-      b.innerHTML = `${a.name}<small>${a.spec}</small>`;
+      b.innerHTML = `<span class="txt">${a.name}<small>${a.spec}</small></span>`;
+      if (THUMBS.has(a.id)) b.prepend(Object.assign(document.createElement('img'), { src: THUMBS.get(a.id), alt: '', className: 'thumb' }));
       b.onclick = () => addAsset(a.id);
       box.appendChild(b);
     }
@@ -431,6 +435,7 @@ function renderProps() {
   const a = ASSET_MAP[e.asset];
   $('p-name').value = e.name;
   $('p-asset').textContent = a ? `${a.name}, ${a.spec}` : `알 수 없는 에셋: ${e.asset}`;
+  renderPhotos(e.asset);
 
   const box = $('p-params');
   box.innerHTML = '';
@@ -458,6 +463,28 @@ function renderProps() {
   }
   fillTransformInputs();
   renderPropsStatus();
+}
+
+// 3D 미리보기 + 실물 사진 (images/parts/<에셋 id>.jpg 가 있으면)
+function renderPhotos(assetId) {
+  const box = $('p-photos');
+  box.innerHTML = '';
+  if (THUMBS.has(assetId)) {
+    const f = document.createElement('figure');
+    f.innerHTML = `<img alt="3D 모델"><figcaption>3D 모델</figcaption>`;
+    f.querySelector('img').src = THUMBS.get(assetId);
+    box.appendChild(f);
+  }
+  const real = document.createElement('figure');
+  real.hidden = true;
+  real.innerHTML = `<img alt="실물 사진"><figcaption>실물 사진</figcaption>`;
+  const img = real.querySelector('img');
+  const exts = ['jpg', 'png', 'webp'];
+  let k = 0;
+  img.onload = () => { real.hidden = false; };
+  img.onerror = () => { if (++k < exts.length) img.src = `${PHOTO_DIR}${assetId}.${exts[k]}`; };
+  img.src = `${PHOTO_DIR}${assetId}.${exts[0]}`;
+  box.appendChild(real);
 }
 
 function fillTransformInputs() {
