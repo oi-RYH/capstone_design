@@ -130,10 +130,20 @@ flowchart TD
 
 ## 문서
 
+### 프로젝트 문서
+
+| 문서 | 내용 |
+| --- | --- |
+| [프로젝트 계획서](docs/project-plan.md) | 프로젝트 목표, 요구사항, 시스템 설계 및 수행 계획 |
+| [선행기술 조사보고서](docs/prior-art-research.md) | 캐리어 자동 세척 관련 특허·기술 조사 결과 |
+
+### 회의록 및 규칙
+
 | 문서 | 내용 |
 | --- | --- |
 | [1주차 회의록](<meeting-notes/2026-09-13-meeting.md>) | 캡스톤 아이디어 브레인스토밍 |
 | [2주차 회의록](<meeting-notes/2026-09-21-meeting.md>) | 자동 캐리어 세척 구조 구체화 |
+| [3주차 회의록](<meeting-notes/2026-09-22-meeting.md>) | 계획서 작성을 위한 프로젝트 기초 설계 |
 | [회의록 템플릿](<meeting-notes/template.md>) | 공통 회의록 작성 형식 |
 | [커밋 메시지 규칙](commit-convention.md) | Conventional Commits 기반 커밋 규칙 |
 | [파일 네이밍 규칙](file-naming-convention.md) | kebab-case 기반 네이밍 규칙 |
