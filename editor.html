@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>캐리캐리체인지 편집</title>
+<link rel="stylesheet" href="css/common.css">
+<link rel="stylesheet" href="css/editor.css">
+<script type="importmap">
+{ "imports": {
+  "three": "./vendor/three/three.module.min.js",
+  "three/addons/": "./vendor/three/addons/"
+} }
+</script>
+</head>
+<body>
+<header class="bar">
+  <strong>편집</strong>
+  <div class="group" role="group" aria-label="조작 방식">
+    <button type="button" class="btn on" id="mode-translate" title="이동 (W)">이동</button>
+    <button type="button" class="btn" id="mode-rotate" title="회전 (E)">회전</button>
+  </div>
+  <div class="group" role="group" aria-label="기준 축">
+    <button type="button" class="btn on" id="space-world" title="월드 축 기준">월드 축</button>
+    <button type="button" class="btn" id="space-local" title="부품 자체 축 기준">부품 축</button>
+  </div>
+  <label class="snap"><input type="checkbox" id="snap-on" checked> 스냅</label>
+  <label class="snap">이동 <input type="number" id="snap-move" value="5" min="1" step="1"> mm</label>
+  <label class="snap">회전 <input type="number" id="snap-rot" value="15" min="1" max="90" step="1">°</label>
+  <div class="group">
+    <button type="button" class="btn" id="undo" title="되돌리기 (Cmd/Ctrl+Z)">되돌리기</button>
+    <button type="button" class="btn" id="redo" title="다시 실행 (Cmd/Ctrl+Shift+Z)">다시 실행</button>
+  </div>
+  <span class="spacer"></span>
+  <span class="muted" id="dirty"></span>
+  <button type="button" class="btn" id="import" title="내 컴퓨터의 scene.json 불러오기">불러오기</button>
+  <button type="button" class="btn" id="reset" title="편집을 버리고 레포에 저장된 배치로 되돌리기">초기화</button>
+  <button type="button" class="btn primary" id="export" title="지금 배치를 scene.json 파일로 내려받기">scene.json 저장</button>
+  <a class="btn" href="index.html">보기 페이지</a>
+  <input type="file" id="file" accept=".json,application/json" hidden>
+</header>
+
+<aside class="panel left" aria-label="에셋">
+  <h2>에셋</h2>
+  <p class="help">눌러서 장면에 추가합니다. 화면 가운데에 놓입니다.</p>
+  <div id="assets"></div>
+</aside>
+
+<main id="view" aria-label="3D 편집 화면"></main>
+
+<aside class="panel right" aria-label="부품">
+  <section>
+    <h2>부품 목록 <span class="muted" id="obj-count"></span></h2>
+    <ul id="outliner"></ul>
+  </section>
+  <section id="props">
+    <h2>선택한 부품</h2>
+    <p class="help" id="no-sel">부품을 클릭하거나 목록에서 고르세요.</p>
+    <form id="prop-form" hidden autocomplete="off">
+      <label class="row">이름 <input type="text" id="p-name"></label>
+      <p class="spec" id="p-asset"></p>
+      <div id="p-params"></div>
+      <fieldset>
+        <legend>위치 (mm)</legend>
+        <div class="xyz">
+          <label>X <input type="number" step="any" data-k="position" data-i="0"></label>
+          <label>Y <input type="number" step="any" data-k="position" data-i="1"></label>
+          <label>Z <input type="number" step="any" data-k="position" data-i="2"></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>회전 (°)</legend>
+        <div class="xyz">
+          <label>X <input type="number" step="any" data-k="rotation" data-i="0"></label>
+          <label>Y <input type="number" step="any" data-k="rotation" data-i="1"></label>
+          <label>Z <input type="number" step="any" data-k="rotation" data-i="2"></label>
+        </div>
+      </fieldset>
+      <div class="actions">
+        <button type="button" class="btn" id="dup" title="복제 (Cmd/Ctrl+D)">복제</button>
+        <button type="button" class="btn danger" id="del" title="삭제 (Delete)">삭제</button>
+      </div>
+    </form>
+  </section>
+  <section class="keys">
+    <h2>단축키</h2>
+    <dl>
+      <dt>W / E</dt><dd>이동 / 회전</dd>
+      <dt>F</dt><dd>선택한 부품으로 화면 맞추기</dd>
+      <dt>Cmd+D</dt><dd>복제</dd>
+      <dt>Delete</dt><dd>삭제</dd>
+      <dt>Cmd+Z</dt><dd>되돌리기</dd>
+      <dt>Esc</dt><dd>선택 해제</dd>
+    </dl>
+  </section>
+</aside>
+
+<div id="banner" class="banner" hidden>
+  <span>이 브라우저에 저장하지 않은 편집 내용이 남아 있습니다.</span>
+  <button type="button" class="btn primary" id="draft-restore">이어서 편집</button>
+  <button type="button" class="btn" id="draft-discard">버리기</button>
+</div>
+
+<dialog id="saved">
+  <h2>scene.json 을 저장했습니다</h2>
+  <p>레포에 반영해야 보기 페이지에 나타납니다. 내려받은 파일로 레포의 <code>scene.json</code> 을 바꾼 뒤 아래를 실행하세요.</p>
+<pre>git switch gh-pages
+git pull
+# 내려받은 scene.json 을 레포 폴더에 덮어쓰기
+git add scene.json
+git commit -m "feat: 기기 배치 수정"
+git push</pre>
+  <form method="dialog"><button class="btn primary">확인</button></form>
+</dialog>
+
+<div id="msg" class="msg" hidden></div>
+
+<script type="module" src="js/editor.js"></script>
+</body>
+</html>

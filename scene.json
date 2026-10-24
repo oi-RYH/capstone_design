@@ -1,0 +1,434 @@
+{
+  "version": 1,
+  "units": "mm",
+  "objects": [
+    {
+      "id": "leg-1",
+      "asset": "profile-2020",
+      "name": "다리 1",
+      "params": {
+        "length": 100
+      },
+      "position": [
+        -290,
+        50,
+        -290
+      ],
+      "rotation": [
+        0,
+        0,
+        90
+      ]
+    },
+    {
+      "id": "leg-2",
+      "asset": "profile-2020",
+      "name": "다리 2",
+      "params": {
+        "length": 100
+      },
+      "position": [
+        290,
+        50,
+        -290
+      ],
+      "rotation": [
+        0,
+        0,
+        90
+      ]
+    },
+    {
+      "id": "leg-3",
+      "asset": "profile-2020",
+      "name": "다리 3",
+      "params": {
+        "length": 100
+      },
+      "position": [
+        -290,
+        50,
+        290
+      ],
+      "rotation": [
+        0,
+        0,
+        90
+      ]
+    },
+    {
+      "id": "leg-4",
+      "asset": "profile-2020",
+      "name": "다리 4",
+      "params": {
+        "length": 100
+      },
+      "position": [
+        290,
+        50,
+        290
+      ],
+      "rotation": [
+        0,
+        0,
+        90
+      ]
+    },
+    {
+      "id": "rail-x-front",
+      "asset": "profile-2020",
+      "name": "상부 프레임 앞",
+      "params": {
+        "length": 600
+      },
+      "position": [
+        0,
+        110,
+        290
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "rail-x-back",
+      "asset": "profile-2020",
+      "name": "상부 프레임 뒤",
+      "params": {
+        "length": 600
+      },
+      "position": [
+        0,
+        110,
+        -290
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "rail-z-left",
+      "asset": "profile-2020",
+      "name": "상부 프레임 왼쪽",
+      "params": {
+        "length": 560
+      },
+      "position": [
+        -290,
+        110,
+        0
+      ],
+      "rotation": [
+        0,
+        90,
+        0
+      ]
+    },
+    {
+      "id": "rail-z-right",
+      "asset": "profile-2020",
+      "name": "상부 프레임 오른쪽",
+      "params": {
+        "length": 560
+      },
+      "position": [
+        290,
+        110,
+        0
+      ],
+      "rotation": [
+        0,
+        90,
+        0
+      ]
+    },
+    {
+      "id": "support-left",
+      "asset": "profile-2020",
+      "name": "홀더 받침 왼쪽",
+      "params": {
+        "length": 600
+      },
+      "position": [
+        -220,
+        130,
+        0
+      ],
+      "rotation": [
+        0,
+        90,
+        0
+      ]
+    },
+    {
+      "id": "support-right",
+      "asset": "profile-2020",
+      "name": "홀더 받침 오른쪽",
+      "params": {
+        "length": 600
+      },
+      "position": [
+        220,
+        130,
+        0
+      ],
+      "rotation": [
+        0,
+        90,
+        0
+      ]
+    },
+    {
+      "id": "shaft-roller",
+      "asset": "shaft-10",
+      "name": "롤러축",
+      "params": {
+        "length": 490
+      },
+      "position": [
+        0,
+        161,
+        -25
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "holder-roller-l",
+      "asset": "bearing-holder-6900",
+      "name": "롤러축 베어링 홀더 왼쪽",
+      "params": {},
+      "position": [
+        -220,
+        161,
+        -25
+      ],
+      "rotation": [
+        0,
+        180,
+        0
+      ]
+    },
+    {
+      "id": "holder-roller-r",
+      "asset": "bearing-holder-6900",
+      "name": "롤러축 베어링 홀더 오른쪽",
+      "params": {},
+      "position": [
+        220,
+        161,
+        -25
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "coupling-roller",
+      "asset": "coupling-20",
+      "name": "롤러축 커플링",
+      "params": {},
+      "position": [
+        257.5,
+        161,
+        -25
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "motor-roller",
+      "asset": "motor-37",
+      "name": "롤러축 모터",
+      "params": {},
+      "position": [
+        300,
+        161,
+        -25
+      ],
+      "rotation": [
+        0,
+        180,
+        0
+      ]
+    },
+    {
+      "id": "shaft-brush",
+      "asset": "shaft-10",
+      "name": "브러시축",
+      "params": {
+        "length": 490
+      },
+      "position": [
+        0,
+        161,
+        25
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "holder-brush-l",
+      "asset": "bearing-holder-6900",
+      "name": "브러시축 베어링 홀더 왼쪽",
+      "params": {},
+      "position": [
+        -220,
+        161,
+        25
+      ],
+      "rotation": [
+        0,
+        180,
+        0
+      ]
+    },
+    {
+      "id": "holder-brush-r",
+      "asset": "bearing-holder-6900",
+      "name": "브러시축 베어링 홀더 오른쪽",
+      "params": {},
+      "position": [
+        220,
+        161,
+        25
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "coupling-brush",
+      "asset": "coupling-20",
+      "name": "브러시축 커플링",
+      "params": {},
+      "position": [
+        257.5,
+        161,
+        25
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "motor-brush",
+      "asset": "motor-37",
+      "name": "브러시축 모터",
+      "params": {},
+      "position": [
+        300,
+        161,
+        25
+      ],
+      "rotation": [
+        0,
+        180,
+        0
+      ]
+    },
+    {
+      "id": "roller-l",
+      "asset": "roller-urethane-40",
+      "name": "우레탄 롤러 왼쪽",
+      "params": {},
+      "position": [
+        -140,
+        161,
+        -25
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "brush-l",
+      "asset": "sponge-brush",
+      "name": "스펀지 브러시 왼쪽",
+      "params": {
+        "length": 60
+      },
+      "position": [
+        -140,
+        161,
+        25
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "roller-r",
+      "asset": "roller-urethane-40",
+      "name": "우레탄 롤러 오른쪽",
+      "params": {},
+      "position": [
+        140,
+        161,
+        -25
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "brush-r",
+      "asset": "sponge-brush",
+      "name": "스펀지 브러시 오른쪽",
+      "params": {
+        "length": 60
+      },
+      "position": [
+        140,
+        161,
+        25
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "carrier",
+      "asset": "carrier-20",
+      "name": "20인치 캐리어",
+      "params": {},
+      "position": [
+        0,
+        173.4,
+        -80
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}

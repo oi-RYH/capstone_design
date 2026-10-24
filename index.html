@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>캐리캐리체인지 3D 뷰어</title>
+<link rel="stylesheet" href="css/common.css">
+<style>
+  #view{position:fixed;inset:48px 0 0 0}
+  #tip{position:fixed;pointer-events:none;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-size:13px;line-height:1.45;display:none;box-shadow:0 4px 16px rgba(0,0,0,.12);max-width:280px}
+  #tip small{color:var(--muted);display:block}
+  .hint{position:fixed;left:16px;bottom:14px;font-size:12px;color:var(--muted);background:rgba(255,255,255,.7);padding:4px 8px;border-radius:4px}
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "./vendor/three/three.module.min.js",
+  "three/addons/": "./vendor/three/addons/"
+} }
+</script>
+</head>
+<body>
+<header class="bar">
+  <strong>캐리캐리체인지</strong>
+  <span class="muted" id="count"></span>
+  <span class="spacer"></span>
+  <button type="button" class="btn" id="fit">전체 보기</button>
+  <a class="btn primary" href="editor.html">편집하기</a>
+</header>
+<div id="view"></div>
+<div id="tip"></div>
+<p class="hint">드래그로 회전, 휠로 확대, 오른쪽 드래그로 이동</p>
+<div id="msg" class="msg" hidden></div>
+
+<script type="module">
+import { createViewport, fetchScene, buildObject, frameObjects, pickObject } from './js/scene.js';
+import { ASSET_MAP } from './js/assets.js';
+
+const view = createViewport(document.getElementById('view'));
+const tip = document.getElementById('tip');
+
+try {
+  const data = await fetchScene();
+  for (const e of data.objects) view.root.add(buildObject(e));
+  document.getElementById('count').textContent = `부품 ${data.objects.length}개`;
+  frameObjects(view, view.root.children);
+} catch (err) {
+  const m = document.getElementById('msg');
+  m.hidden = false;
+  m.innerHTML = `<b>장면을 불러오지 못했습니다.</b><br>${err.message}<br><small>파일을 더블클릭해서 열면 브라우저가 scene.json 읽기를 막습니다. 터미널에서 <code>python3 -m http.server</code> 실행 후 http://localhost:8000 으로 열어 주세요.</small>`;
+}
+
+document.getElementById('fit').onclick = () => frameObjects(view, view.root.children);
+
+view.renderer.domElement.addEventListener('pointermove', e => {
+  const o = pickObject(view, e.clientX, e.clientY);
+  if (!o) { tip.style.display = 'none'; return; }
+  const ent = o.userData.entry, a = ASSET_MAP[ent.asset];
+  const len = ent.params?.length ? `, 길이 ${ent.params.length} mm` : '';
+  tip.innerHTML = `${ent.name}<small>${a ? a.name : ent.asset}${len}</small>`;
+  tip.style.display = 'block';
+  tip.style.left = (e.clientX + 14) + 'px';
+  tip.style.top = (e.clientY + 14) + 'px';
+});
+view.renderer.domElement.addEventListener('pointerleave', () => tip.style.display = 'none');
+</script>
+</body>
+</html>
