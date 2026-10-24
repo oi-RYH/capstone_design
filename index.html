@@ -25,7 +25,7 @@
   <span class="muted" id="count"></span>
   <span class="spacer"></span>
   <button type="button" class="btn" id="fit">전체 보기</button>
-  <a class="btn primary" href="editor.html">편집하기</a>
+  <a class="btn primary" href="editor.html" id="edit-link">편집하기</a>
 </header>
 <div id="view"></div>
 <div id="tip"></div>
@@ -35,6 +35,13 @@
 <script type="module">
 import { createViewport, fetchScene, buildObject, frameObjects, pickObject, renderHardware, markProblem, renderLinks } from './js/scene.js';
 import { analyze } from './js/assembly.js';
+import { isUnlocked, askPassword } from './js/gate.js';
+
+document.getElementById('edit-link').addEventListener('click', ev => {
+  if (isUnlocked()) return;
+  ev.preventDefault();
+  askPassword({ onOk: () => { location.href = 'editor.html'; } });
+});
 import { ASSET_MAP } from './js/assets.js';
 
 const view = createViewport(document.getElementById('view'));

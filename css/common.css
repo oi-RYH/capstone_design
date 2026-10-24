@@ -28,3 +28,14 @@ button,input,select{font:inherit;color:inherit}
 .msg small{color:var(--muted)}
 code{background:var(--hover);padding:1px 5px;border-radius:4px;font-size:.92em}
 [hidden]{display:none !important}
+
+/* 편집 비밀번호 */
+body.locked > :not(dialog){filter:blur(6px);pointer-events:none;user-select:none}
+dialog.gate{border:1px solid var(--line);border-radius:10px;padding:20px 22px;width:min(320px,90vw)}
+dialog.gate::backdrop{background:rgba(20,28,34,.35)}
+dialog.gate h2{font-size:16px;margin:0 0 4px}
+.gate-help{margin:0 0 12px;color:var(--muted);font-size:13px}
+dialog.gate input{width:100%;height:36px;border:1px solid var(--line);border-radius:6px;padding:0 10px;font-size:16px;letter-spacing:.2em}
+.gate-err{color:var(--danger);font-size:12px;margin:6px 0 0}
+.gate-actions{display:flex;justify-content:flex-end;gap:6px;margin-top:14px}
+dialog.gate form{text-align:left}

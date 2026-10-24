@@ -168,6 +168,14 @@
 
 <div id="msg" class="msg" hidden></div>
 
+<script type="module">
+  // 비밀번호를 확인하기 전에는 편집 화면을 가린다
+  import { isUnlocked, askPassword } from './js/gate.js';
+  if (!isUnlocked()) {
+    document.body.classList.add('locked');
+    askPassword({ closable: false, onOk: () => document.body.classList.remove('locked') });
+  }
+</script>
 <script type="module" src="js/editor.js"></script>
 </body>
 </html>
