@@ -307,7 +307,7 @@
       "params": {},
       "position": [
         -185,
-        180,
+        65,
         40
       ],
       "rotation": [
@@ -325,7 +325,7 @@
       },
       "position": [
         16,
-        180,
+        65,
         40
       ],
       "rotation": [
@@ -340,14 +340,14 @@
       "name": "브러시축 모터 브라켓",
       "params": {},
       "position": [
-        246,
-        180,
+        416,
+        140,
         10
       ],
       "rotation": [
-        -90,
+        180,
         0,
-        -180
+        180
       ]
     },
     {
@@ -356,14 +356,14 @@
       "name": "브러시축 모터",
       "params": {},
       "position": [
-        258,
-        180,
-        40
+        428,
+        170,
+        10
       ],
       "rotation": [
-        0,
         180,
-        0
+        0,
+        180
       ]
     },
     {
@@ -373,7 +373,7 @@
       "params": {},
       "position": [
         230,
-        180,
+        65,
         40
       ],
       "rotation": [
@@ -407,7 +407,7 @@
       },
       "position": [
         -140,
-        180,
+        65,
         40
       ],
       "rotation": [
@@ -441,7 +441,7 @@
       },
       "position": [
         140,
-        180,
+        65,
         40
       ],
       "rotation": [
@@ -458,11 +458,81 @@
       "position": [
         0,
         175.6,
-        -80
+        -665
       ],
       "rotation": [
         0,
         0,
+        0
+      ]
+    },
+    {
+      "id": "profile-2020-1",
+      "asset": "profile-2020",
+      "name": "알루미늄 프로파일 2020",
+      "params": {
+        "length": 780
+      },
+      "position": [
+        0,
+        10,
+        95
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "profile-2020-2",
+      "asset": "profile-2020",
+      "name": "알루미늄 프로파일 2020 2",
+      "params": {
+        "length": 780
+      },
+      "position": [
+        0,
+        10,
+        -125
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "pillow-kp000-1",
+      "asset": "pillow-kp000",
+      "name": "필로우 블록 KP000",
+      "params": {},
+      "position": [
+        -110,
+        20,
+        95
+      ],
+      "rotation": [
+        0,
+        90,
+        0
+      ]
+    },
+    {
+      "id": "profile-2020-3",
+      "asset": "profile-2020",
+      "name": "알루미늄 프로파일 2020 3",
+      "params": {
+        "length": 200
+      },
+      "position": [
+        -185,
+        10,
+        -15
+      ],
+      "rotation": [
+        0,
+        90,
         0
       ]
     }
