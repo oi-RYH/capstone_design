@@ -8,6 +8,7 @@ import {
 } from './scene.js';
 import { analyze, snapEntry, followersOf, canGear, MODULES } from './assembly.js';
 import { makeThumbnails, PHOTO_DIR } from './thumbs.js';
+import { getToken, setToken, readRemote, writeRemote, REPO } from './publish.js';
 
 const THUMBS = makeThumbnails();
 
@@ -228,7 +229,7 @@ function afterChange() {
   updateUndoButtons();
   refreshAssembly();
   const dirty = snapshot() !== state.baseline;
-  $('dirty').textContent = dirty ? '저장 안 한 변경 있음' : '';
+  $('dirty').textContent = dirty ? '적용 안 한 변경 있음' : '';
   try {
     if (dirty) localStorage.setItem(DRAFT_KEY, JSON.stringify(sceneData()));
     else localStorage.removeItem(DRAFT_KEY);
@@ -704,15 +705,66 @@ for (const id of ['snap-on', 'snap-move', 'snap-rot']) $(id).addEventListener('c
 $('undo').onclick = () => { if (history.index > 0) restore(history.index - 1); };
 $('redo').onclick = () => { if (history.index < history.stack.length - 1) restore(history.index + 1); };
 
-$('export').onclick = () => {
-  const data = sceneData();
-  const blob = new Blob([JSON.stringify(data, null, 2) + '\n'], { type: 'application/json' });
+// ---------------- 적용 (GitHub 에 바로 커밋) ----------------
+const sceneText = () => JSON.stringify(sceneData(), null, 2) + '\n';
+const normJSON = data => JSON.stringify(normalizeScene(data));
+function applyStatus(html, kind = '') {
+  const el = $('apply-status');
+  el.className = 'apply-status ' + kind;
+  el.innerHTML = html;
+}
+async function applyToSite() {
+  const dlg = $('apply-dlg');
+  if (!dlg.open) dlg.showModal();
+  const token = getToken();
+  $('token-form').hidden = !!token;
+  if (!token) { applyStatus(''); $('token-input').focus(); return; }
+
+  $('export').disabled = true;
+  applyStatus('레포에 적용하는 중...');
+  try {
+    const remote = await readRemote(token);
+    let remoteNorm = null;
+    try { remoteNorm = normJSON(JSON.parse(remote.text)); } catch {}
+    if (remoteNorm !== state.loadedJSON &&
+        !confirm('편집을 시작한 뒤에 다른 사람이 배치를 바꿔서 적용했습니다.\n내 편집으로 덮어쓸까요? (취소하면 아무것도 바뀌지 않습니다)')) {
+      applyStatus('취소했습니다. 초기화를 누르면 최신 배치를 불러옵니다.');
+      return;
+    }
+    const text = sceneText();
+    if (text === remote.text) {
+      applyStatus('사이트에 적용된 배치와 같아서 바꿀 내용이 없습니다.', 'ok');
+      state.baseline = snapshot(); state.loadedJSON = normJSON(sceneData()); afterChange();
+      return;
+    }
+    const r = await writeRemote(token, text, remote.sha, 'feat: 기기 배치 수정 (편집 페이지에서 적용)');
+    state.baseline = snapshot();
+    state.loadedJSON = normJSON(sceneData());
+    afterChange();
+    applyStatus(`적용했습니다. 1~2분 뒤 사이트에 들어오는 모든 사람에게 이 배치가 보입니다.<br><a href="${r.commit.html_url}" target="_blank" rel="noopener">커밋 보기</a> · <a href="https://github.com/${REPO.owner}/${REPO.repo}/actions" target="_blank" rel="noopener">배포 진행 상황</a>`, 'ok');
+  } catch (err) {
+    applyStatus(err.message, 'bad');
+    if (/토큰이 올바르지 않거나/.test(err.message)) { setToken(''); $('token-form').hidden = false; }
+  } finally {
+    $('export').disabled = false;
+  }
+}
+$('export').onclick = applyToSite;
+$('token-form').onsubmit = ev => {
+  ev.preventDefault();
+  const t = $('token-input').value.trim();
+  if (!t) return;
+  setToken(t);
+  $('token-input').value = '';
+  applyToSite();
+};
+$('token-clear').onclick = () => { setToken(''); $('token-form').hidden = false; applyStatus('이 브라우저에 저장된 토큰을 지웠습니다.'); };
+$('apply-close').onclick = () => $('apply-dlg').close();
+$('download').onclick = () => {
+  const blob = new Blob([sceneText()], { type: 'application/json' });
   const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'scene.json' });
   a.click();
   URL.revokeObjectURL(a.href);
-  state.baseline = snapshot();
-  afterChange();
-  $('saved').showModal();
 };
 
 $('import').onclick = () => $('file').click();
@@ -731,7 +783,7 @@ $('file').onchange = async () => {
 };
 
 $('reset').onclick = async () => {
-  if (snapshot() !== state.baseline && !confirm('지금까지 편집한 내용을 버리고 레포에 저장된 배치로 되돌릴까요?')) return;
+  if (snapshot() !== state.baseline && !confirm('지금까지 편집한 내용을 버리고 사이트에 적용된 배치로 되돌릴까요?')) return;
   await loadFromRepo();
 };
 
@@ -777,6 +829,7 @@ async function loadFromRepo() {
     showMsg(`<b>scene.json 을 불러오지 못해 빈 장면으로 시작합니다.</b><br>${err.message}<br><small>파일을 더블클릭해서 열었다면 터미널에서 <code>python3 -m http.server</code> 실행 후 http://localhost:8000/editor.html 로 열어 주세요.</small>`);
   }
   loadObjects(data.objects, data.links);
+  state.loadedJSON = normJSON(data);
   state.baseline = snapshot();
   resetHistory();
   afterChange();

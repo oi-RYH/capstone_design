@@ -8,19 +8,16 @@
 ## 배치 수정하는 법
 
 1. 편집 페이지에서 부품을 배치한다.
-2. **scene.json 저장** 을 눌러 파일을 내려받는다.
-3. 내려받은 파일로 레포의 `scene.json` 을 덮어쓰고 커밋, push 한다.
+2. 오른쪽 위 **적용** 을 누른다. gh-pages 브랜치의 `scene.json` 이 바로 커밋된다.
+3. 1~2분 뒤 사이트에 들어오는 모든 사람에게 그 배치가 보인다.
 
-```bash
-git switch gh-pages
-git pull
-git add scene.json
-git commit -m "feat: 기기 배치 수정"
-git push
-```
+처음 적용할 때 GitHub 토큰을 한 번 입력한다. 토큰은 그 브라우저(localStorage)에만 저장되고 레포에는 올라가지 않는다.
 
-push 후 1~2분 뒤 보기 페이지에 반영된다.
-편집하다가 창을 닫아도 같은 브라우저에서 다시 열면 이어서 편집할 수 있다.
+- 만드는 법: GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic) → Generate new token (classic) → 권한은 `public_repo` 하나만, 만료 기간 설정
+- 레포 주인이 아닌 팀원은 먼저 레포 협업자(Settings → Collaborators)로 초대받아야 한다.
+- 편집을 시작한 뒤 다른 사람이 먼저 적용했으면 덮어쓸지 물어본다.
+- 공용 컴퓨터에서 썼다면 적용 창의 **토큰 지우기** 를 누른다.
+- 편집하다가 창을 닫아도 같은 브라우저에서 다시 열면 이어서 편집할 수 있다.
 
 ## 내 컴퓨터에서 확인하기
 
@@ -103,6 +100,9 @@ js/assets.js      부품 카탈로그
 js/scene.js       보기, 편집 페이지 공통 3D 코드
 js/assembly.js    조립 규칙 (결합 판정, 자석 스냅, 체결 부품, 부품표)
 js/editor.js      편집 기능
+js/publish.js     적용 버튼 (GitHub API 로 scene.json 커밋)
+js/thumbs.js      에셋 3D 미리보기 사진
+images/parts/     부품 실물 사진 (<에셋 id>.jpg)
 css/              스타일
 vendor/three/     three.js r170 (MIT)
 ```
