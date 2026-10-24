@@ -219,53 +219,21 @@
       ]
     },
     {
-      "id": "holder-roller",
-      "asset": "bearing-holder-6900",
-      "name": "롤러축 베어링 홀더",
-      "params": {},
-      "position": [
-        -185,
-        180,
-        -40
-      ],
-      "rotation": [
-        0,
-        0,
-        0
-      ]
-    },
-    {
       "id": "shaft-roller",
       "asset": "shaft-10",
       "name": "롤러축",
       "params": {
-        "length": 428
+        "length": 500
       },
       "position": [
-        16,
-        180,
-        -40
+        25,
+        38,
+        -50
       ],
       "rotation": [
         0,
         0,
         0
-      ]
-    },
-    {
-      "id": "mbracket-roller",
-      "asset": "motor-bracket-37",
-      "name": "롤러축 모터 브라켓",
-      "params": {},
-      "position": [
-        246,
-        180,
-        -10
-      ],
-      "rotation": [
-        90,
-        0,
-        -180
       ]
     },
     {
@@ -274,14 +242,14 @@
       "name": "롤러축 모터",
       "params": {},
       "position": [
-        258,
-        180,
-        -40
+        293,
+        50,
+        65
       ],
       "rotation": [
+        -180,
         0,
-        180,
-        0
+        180
       ]
     },
     {
@@ -290,25 +258,9 @@
       "name": "롤러축 커플링",
       "params": {},
       "position": [
-        230,
-        180,
-        -40
-      ],
-      "rotation": [
-        0,
-        0,
-        0
-      ]
-    },
-    {
-      "id": "holder-brush",
-      "asset": "bearing-holder-6900",
-      "name": "브러시축 베어링 홀더",
-      "params": {},
-      "position": [
-        -185,
-        65,
-        40
+        225,
+        38,
+        -50
       ],
       "rotation": [
         0,
@@ -321,12 +273,12 @@
       "asset": "shaft-10",
       "name": "브러시축",
       "params": {
-        "length": 428
+        "length": 500
       },
       "position": [
-        16,
-        65,
-        40
+        40,
+        38,
+        30
       ],
       "rotation": [
         0,
@@ -335,46 +287,14 @@
       ]
     },
     {
-      "id": "mbracket-brush",
-      "asset": "motor-bracket-37",
-      "name": "브러시축 모터 브라켓",
-      "params": {},
-      "position": [
-        416,
-        140,
-        10
-      ],
-      "rotation": [
-        180,
-        0,
-        180
-      ]
-    },
-    {
-      "id": "motor-brush",
-      "asset": "motor-37",
-      "name": "브러시축 모터",
-      "params": {},
-      "position": [
-        428,
-        170,
-        10
-      ],
-      "rotation": [
-        180,
-        0,
-        180
-      ]
-    },
-    {
       "id": "coupling-brush",
       "asset": "coupling-20",
       "name": "브러시축 커플링",
       "params": {},
       "position": [
-        230,
-        65,
-        40
+        225,
+        38,
+        30
       ],
       "rotation": [
         0,
@@ -388,9 +308,9 @@
       "name": "우레탄 롤러 왼쪽",
       "params": {},
       "position": [
-        -140,
-        180,
-        -40
+        -131,
+        38,
+        -50
       ],
       "rotation": [
         0,
@@ -407,8 +327,8 @@
       },
       "position": [
         -140,
-        65,
-        40
+        38,
+        30
       ],
       "rotation": [
         0,
@@ -422,9 +342,9 @@
       "name": "우레탄 롤러 오른쪽",
       "params": {},
       "position": [
-        140,
-        180,
-        -40
+        130,
+        38,
+        -50
       ],
       "rotation": [
         0,
@@ -440,9 +360,9 @@
         "length": 60
       },
       "position": [
-        140,
-        65,
-        40
+        130,
+        38,
+        30
       ],
       "rotation": [
         0,
@@ -508,14 +428,14 @@
       "name": "필로우 블록 KP000",
       "params": {},
       "position": [
-        -110,
+        -205,
         20,
-        95
+        30
       ],
       "rotation": [
+        -180,
         0,
-        90,
-        0
+        -180
       ]
     },
     {
@@ -526,7 +446,7 @@
         "length": 200
       },
       "position": [
-        -185,
+        -205,
         10,
         -15
       ],
@@ -535,7 +455,164 @@
         90,
         0
       ]
+    },
+    {
+      "id": "profile-2020-4",
+      "asset": "profile-2020",
+      "name": "알루미늄 프로파일 2020 3 2",
+      "params": {
+        "length": 200
+      },
+      "position": [
+        230,
+        10,
+        -15
+      ],
+      "rotation": [
+        0,
+        90,
+        0
+      ]
+    },
+    {
+      "id": "pillow-kp000-2",
+      "asset": "pillow-kp000",
+      "name": "필로우 블록 KP000 2",
+      "params": {},
+      "position": [
+        -205,
+        20,
+        -50
+      ],
+      "rotation": [
+        -180,
+        0,
+        -180
+      ]
+    },
+    {
+      "id": "pillow-kp000-3",
+      "asset": "pillow-kp000",
+      "name": "필로우 블록 KP000 3",
+      "params": {},
+      "position": [
+        230,
+        20,
+        30
+      ],
+      "rotation": [
+        -180,
+        0,
+        -180
+      ]
+    },
+    {
+      "id": "pillow-kp000-4",
+      "asset": "pillow-kp000",
+      "name": "필로우 블록 KP000 3 2",
+      "params": {},
+      "position": [
+        230,
+        20,
+        -50
+      ],
+      "rotation": [
+        -180,
+        0,
+        -180
+      ]
+    },
+    {
+      "id": "profile-2020-5",
+      "asset": "profile-2020",
+      "name": "알루미늄 프로파일 2020 3 2 2",
+      "params": {
+        "length": 200
+      },
+      "position": [
+        265,
+        10,
+        -15
+      ],
+      "rotation": [
+        0,
+        90,
+        0
+      ]
+    },
+    {
+      "id": "motor-bracket-37-1",
+      "asset": "motor-bracket-37",
+      "name": "37mm 모터 L 브라켓",
+      "params": {},
+      "position": [
+        281,
+        20,
+        65
+      ],
+      "rotation": [
+        180,
+        0,
+        180
+      ]
+    },
+    {
+      "id": "motor-37-1",
+      "asset": "motor-37",
+      "name": "롤러축 모터 2",
+      "params": {},
+      "position": [
+        293,
+        50,
+        -85
+      ],
+      "rotation": [
+        -180,
+        0,
+        180
+      ]
+    },
+    {
+      "id": "motor-bracket-37-2",
+      "asset": "motor-bracket-37",
+      "name": "37mm 모터 L 브라켓 2",
+      "params": {},
+      "position": [
+        281,
+        20,
+        -85
+      ],
+      "rotation": [
+        180,
+        0,
+        180
+      ]
     }
   ],
-  "links": []
+  "links": [
+    {
+      "id": "gear-1",
+      "type": "gear",
+      "a": "motor-roller",
+      "b": "shaft-brush",
+      "ratio": [
+        1,
+        2
+      ],
+      "module": "auto",
+      "pos": null
+    },
+    {
+      "id": "gear-2",
+      "type": "gear",
+      "a": "shaft-roller",
+      "b": "motor-37-1",
+      "ratio": [
+        2,
+        1
+      ],
+      "module": "auto",
+      "pos": null
+    }
+  ]
 }
