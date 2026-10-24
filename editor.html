@@ -42,16 +42,20 @@
 
 <aside class="panel left" aria-label="에셋">
   <h2>에셋</h2>
-  <p class="help">눌러서 장면에 추가합니다. 화면 가운데에 놓입니다.</p>
+  <p class="help">눌러서 장면에 추가합니다. 끌어서 다른 부품 근처로 가져가면 결합 위치에 자석처럼 붙고, 브라켓과 볼트는 자동으로 생깁니다.</p>
   <div id="assets"></div>
 </aside>
 
-<main id="view" aria-label="3D 편집 화면"></main>
+<main id="view" aria-label="3D 편집 화면"><p id="snap-hint" class="snap-hint" hidden></p></main>
 
 <aside class="panel right" aria-label="부품">
   <section>
     <h2>부품 목록 <span class="muted" id="obj-count"></span></h2>
     <ul id="outliner"></ul>
+  </section>
+  <section>
+    <h2>경고 <span class="bad-count" id="warn-count"></span></h2>
+    <ul id="warnings"></ul>
   </section>
   <section id="props">
     <h2>선택한 부품</h2>
@@ -59,6 +63,7 @@
     <form id="prop-form" hidden autocomplete="off">
       <label class="row">이름 <input type="text" id="p-name"></label>
       <p class="spec" id="p-asset"></p>
+      <p id="p-status" class="status" hidden></p>
       <div id="p-params"></div>
       <fieldset>
         <legend>위치 (mm)</legend>
@@ -82,10 +87,18 @@
       </div>
     </form>
   </section>
+  <section>
+    <details>
+      <summary><h2>부품표</h2></summary>
+      <p class="help" id="joint-sum"></p>
+      <table class="bom"><tbody id="bom"></tbody></table>
+    </details>
+  </section>
   <section class="keys">
     <h2>단축키</h2>
     <dl>
       <dt>W / E</dt><dd>이동 / 회전</dd>
+      <dt>Alt + 드래그</dt><dd>자석 끄고 자유롭게 이동</dd>
       <dt>F</dt><dd>선택한 부품으로 화면 맞추기</dd>
       <dt>Cmd+D</dt><dd>복제</dd>
       <dt>Delete</dt><dd>삭제</dd>

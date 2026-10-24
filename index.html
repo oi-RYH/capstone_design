@@ -9,6 +9,7 @@
   #view{position:fixed;inset:48px 0 0 0}
   #tip{position:fixed;pointer-events:none;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-size:13px;line-height:1.45;display:none;box-shadow:0 4px 16px rgba(0,0,0,.12);max-width:280px}
   #tip small{color:var(--muted);display:block}
+  #tip small.bad{color:var(--danger)}
   .hint{position:fixed;left:16px;bottom:14px;font-size:12px;color:var(--muted);background:rgba(255,255,255,.7);padding:4px 8px;border-radius:4px}
 </style>
 <script type="importmap">
@@ -32,16 +33,23 @@
 <div id="msg" class="msg" hidden></div>
 
 <script type="module">
-import { createViewport, fetchScene, buildObject, frameObjects, pickObject } from './js/scene.js';
+import { createViewport, fetchScene, buildObject, frameObjects, pickObject, renderHardware, markProblem } from './js/scene.js';
+import { analyze } from './js/assembly.js';
 import { ASSET_MAP } from './js/assets.js';
 
 const view = createViewport(document.getElementById('view'));
 const tip = document.getElementById('tip');
+let problems = new Map();
 
 try {
   const data = await fetchScene();
   for (const e of data.objects) view.root.add(buildObject(e));
-  document.getElementById('count').textContent = `부품 ${data.objects.length}개`;
+  const a = analyze(data.objects);
+  renderHardware(view, a.hardware);
+  for (const g of view.root.children) markProblem(g, a.problems.has(g.userData.entry.id));
+  problems = a.problems;
+  const warn = a.problems.size ? `, 경고 ${a.problems.size}개` : '';
+  document.getElementById('count').textContent = `부품 ${data.objects.length}개, 체결 부품 ${a.hardware.length}개${warn}`;
   frameObjects(view, view.root.children);
 } catch (err) {
   const m = document.getElementById('msg');
@@ -56,7 +64,8 @@ view.renderer.domElement.addEventListener('pointermove', e => {
   if (!o) { tip.style.display = 'none'; return; }
   const ent = o.userData.entry, a = ASSET_MAP[ent.asset];
   const len = ent.params?.length ? `, 길이 ${ent.params.length} mm` : '';
-  tip.innerHTML = `${ent.name}<small>${a ? a.name : ent.asset}${len}</small>`;
+  const p = problems.get(ent.id);
+  tip.innerHTML = `${ent.name}<small>${a ? a.name : ent.asset}${len}</small>${p ? `<small class="bad">${p}</small>` : ''}`;
   tip.style.display = 'block';
   tip.style.left = (e.clientX + 14) + 'px';
   tip.style.top = (e.clientY + 14) + 'px';

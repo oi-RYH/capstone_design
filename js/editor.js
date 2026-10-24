@@ -4,8 +4,9 @@ import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { ASSETS, ASSET_MAP, resolveParams } from './assets.js';
 import {
   createViewport, fetchScene, normalizeScene, emptyScene, buildObject,
-  applyTransform, readTransform, frameObjects, pickObject,
+  applyTransform, readTransform, frameObjects, pickObject, renderHardware, markProblem,
 } from './scene.js';
+import { analyze, snapEntry, followersOf } from './assembly.js';
 
 const DRAFT_KEY = 'carrycarry-scene-draft';
 const $ = id => document.getElementById(id);
@@ -16,6 +17,9 @@ const state = {
   groups: new Map(),    // id -> THREE.Group
   selectedId: null,
   baseline: '',         // 마지막으로 불러오거나 저장한 상태 (변경 여부 표시용)
+  analysis: null,       // 조립 판정 결과
+  drag: null,           // 드래그 중 따라오는 부품
+  alt: false,           // Alt 누르는 동안 자석 끄기
 };
 const history = { stack: [], index: -1 };
 
@@ -25,19 +29,119 @@ const tc = new TransformControls(view.camera, view.renderer.domElement);
 tc.setSize(0.9);
 view.scene.add(tc.getHelper());
 tc.addEventListener('dragging-changed', e => { view.controls.enabled = !e.value; });
+tc.addEventListener('mouseDown', () => {
+  const g = tc.object;
+  if (!g) return;
+  const ids = followersOf(g.userData.entry.id, state.analysis, state.objects);
+  const inv = g.matrix.clone().invert();
+  state.drag = {
+    exclude: new Set([g.userData.entry.id, ...ids]),
+    followers: ids.map(id => {
+      const fg = state.groups.get(id);
+      fg.updateMatrix();
+      return { g: fg, rel: inv.clone().multiply(fg.matrix) };
+    }),
+  };
+});
 tc.addEventListener('objectChange', () => {
   const g = tc.object;
   if (!g) return;
-  readTransform(g, g.userData.entry);
+  const entry = g.userData.entry;
+  readTransform(g, entry);
+  let label = null;
+  if (!state.alt && state.drag) {
+    label = snapEntry(entry, state.objects, state.drag.exclude);
+    if (label) applyTransform(g, entry);
+  }
+  if (state.drag) {
+    g.updateMatrix();
+    for (const f of state.drag.followers) {
+      f.g.matrix.copy(g.matrix).multiply(f.rel);
+      f.g.matrix.decompose(f.g.position, f.g.quaternion, f.g.scale);
+      readTransform(f.g, f.g.userData.entry);
+    }
+  }
+  showSnapHint(label);
   fillTransformInputs();
   selBox.update();
+  scheduleRefresh();
 });
-tc.addEventListener('mouseUp', () => commit());
+tc.addEventListener('mouseUp', () => {
+  state.drag = null;
+  showSnapHint(null);
+  commit();
+  refreshAssembly();
+});
 
 const selBox = new THREE.BoxHelper(undefined, 0xffb400);
 selBox.visible = false;
 view.scene.add(selBox);
 view.onTick(() => { if (selBox.visible) selBox.update(); });
+
+// ---------------- 조립 판정 ----------------
+let refreshQueued = false;
+function scheduleRefresh() {
+  if (refreshQueued) return;
+  refreshQueued = true;
+  requestAnimationFrame(() => { refreshQueued = false; refreshAssembly(); });
+}
+
+function refreshAssembly() {
+  const a = state.analysis = analyze(state.objects);
+  renderHardware(view, a.hardware);
+  for (const [id, g] of state.groups) markProblem(g, a.problems.has(id));
+  for (const li of $('outliner').children) li.classList.toggle('bad', a.problems.has(li.dataset.id));
+
+  const n = a.problems.size;
+  $('warn-count').textContent = n ? `${n}개` : '';
+  const ul = $('warnings');
+  ul.innerHTML = '';
+  if (!n) {
+    ul.innerHTML = '<li class="empty">모든 부품이 규칙대로 조립되어 있습니다.</li>';
+  } else {
+    for (const [id, msg] of a.problems) {
+      const e = state.objects.find(o => o.id === id);
+      const li = document.createElement('li');
+      li.innerHTML = `<b></b><span></span>`;
+      li.querySelector('b').textContent = e?.name ?? id;
+      li.querySelector('span').textContent = msg;
+      li.onclick = () => select(id);
+      ul.appendChild(li);
+    }
+  }
+  const tb = $('bom');
+  tb.innerHTML = '';
+  for (const [name, cnt] of [...a.bom].sort((x, y) => x[0].localeCompare(y[0], 'ko'))) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td></td><td></td>';
+    tr.children[0].textContent = name;
+    tr.children[1].textContent = cnt;
+    tb.appendChild(tr);
+  }
+  const j = { T: 0, L: 0, I: 0 };
+  for (const x of a.joints) j[x.type]++;
+  $('joint-sum').textContent = `T자 ${j.T} · ㄱ자 ${j.L} · 일자 ${j.I}`;
+  renderPropsStatus();
+}
+
+function renderPropsStatus() {
+  const e = selectedEntry();
+  const box = $('p-status');
+  if (!e || !state.analysis) { box.hidden = true; return; }
+  const msg = state.analysis.problems.get(e.id);
+  box.hidden = false;
+  box.className = msg ? 'status bad' : 'status ok';
+  if (msg) { box.textContent = msg; return; }
+  const h = state.analysis.hosts.get(e.id);
+  const names = h ? [...h].map(id => state.objects.find(o => o.id === id)?.name ?? id) : [];
+  box.textContent = names.length ? `고정됨: ${names.join(', ')}` : '규칙 위반 없음';
+}
+
+function showSnapHint(label) {
+  const el = $('snap-hint');
+  el.hidden = !label;
+  if (label) el.textContent = label;
+}
 
 // ---------------- 장면 다루기 ----------------
 function snapshot() { return JSON.stringify(state.objects); }
@@ -68,6 +172,7 @@ function rebuild(id) {
   view.root.remove(old);
   const g = addGroup(entry);
   if (wasSel) { tc.attach(g); selBox.setFromObject(g); }
+  scheduleRefresh();
 }
 
 function resetHistory() {
@@ -94,6 +199,7 @@ function restore(i) {
 
 function afterChange() {
   updateUndoButtons();
+  refreshAssembly();
   const dirty = snapshot() !== state.baseline;
   $('dirty').textContent = dirty ? '저장 안 한 변경 있음' : '';
   try {
@@ -201,13 +307,14 @@ view.renderer.domElement.addEventListener('pointerup', e => {
 // ---------------- 패널 ----------------
 function renderAssets() {
   const box = $('assets');
-  const cats = [...new Set(ASSETS.map(a => a.category))];
+  const visible = ASSETS.filter(a => !a.hidden);
+  const cats = [...new Set(visible.map(a => a.category))];
   for (const c of cats) {
     const h = document.createElement('div');
     h.className = 'cat';
     h.textContent = c;
     box.appendChild(h);
-    for (const a of ASSETS.filter(x => x.category === c)) {
+    for (const a of visible.filter(x => x.category === c)) {
       const b = document.createElement('button');
       b.type = 'button';
       b.className = 'asset';
@@ -274,6 +381,7 @@ function renderProps() {
     box.append(label, row);
   }
   fillTransformInputs();
+  renderPropsStatus();
 }
 
 function fillTransformInputs() {
@@ -368,6 +476,10 @@ $('reset').onclick = async () => {
 };
 
 // ---------------- 키보드 ----------------
+window.addEventListener('keydown', e => { if (e.key === 'Alt') state.alt = true; });
+window.addEventListener('keyup', e => { if (e.key === 'Alt') state.alt = false; });
+window.addEventListener('blur', () => { state.alt = false; });
+
 window.addEventListener('keydown', e => {
   const t = e.target;
   if (t.matches && t.matches('input, textarea, select')) return;

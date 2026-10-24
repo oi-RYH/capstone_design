@@ -75,7 +75,7 @@
       ]
     },
     {
-      "id": "rail-x-front",
+      "id": "rail-front",
       "asset": "profile-2020",
       "name": "상부 프레임 앞",
       "params": {
@@ -93,7 +93,7 @@
       ]
     },
     {
-      "id": "rail-x-back",
+      "id": "rail-back",
       "asset": "profile-2020",
       "name": "상부 프레임 뒤",
       "params": {
@@ -111,7 +111,7 @@
       ]
     },
     {
-      "id": "rail-z-left",
+      "id": "rail-left",
       "asset": "profile-2020",
       "name": "상부 프레임 왼쪽",
       "params": {
@@ -124,12 +124,12 @@
       ],
       "rotation": [
         0,
-        90,
+        -90,
         0
       ]
     },
     {
-      "id": "rail-z-right",
+      "id": "rail-right",
       "asset": "profile-2020",
       "name": "상부 프레임 오른쪽",
       "params": {
@@ -142,43 +142,113 @@
       ],
       "rotation": [
         0,
-        90,
+        -90,
         0
       ]
     },
     {
-      "id": "support-left",
+      "id": "base-left",
       "asset": "profile-2020",
-      "name": "홀더 받침 왼쪽",
+      "name": "기둥 받침 왼쪽",
       "params": {
-        "length": 600
+        "length": 560
       },
       "position": [
-        -220,
-        130,
+        -210,
+        110,
         0
       ],
       "rotation": [
         0,
-        90,
+        -90,
         0
       ]
     },
     {
-      "id": "support-right",
+      "id": "base-right",
       "asset": "profile-2020",
-      "name": "홀더 받침 오른쪽",
+      "name": "기둥 받침 오른쪽",
       "params": {
-        "length": 600
+        "length": 560
       },
       "position": [
-        220,
-        130,
+        230,
+        110,
         0
       ],
       "rotation": [
         0,
-        90,
+        -90,
+        0
+      ]
+    },
+    {
+      "id": "post-l-roller",
+      "asset": "profile-2020",
+      "name": "홀더 기둥 (롤러축)",
+      "params": {
+        "length": 100
+      },
+      "position": [
+        -210,
+        170,
+        -40
+      ],
+      "rotation": [
+        0,
+        0,
+        90
+      ]
+    },
+    {
+      "id": "post-l-brush",
+      "asset": "profile-2020",
+      "name": "홀더 기둥 (브러시축)",
+      "params": {
+        "length": 100
+      },
+      "position": [
+        -210,
+        170,
+        40
+      ],
+      "rotation": [
+        0,
+        0,
+        90
+      ]
+    },
+    {
+      "id": "post-motor",
+      "asset": "profile-2020",
+      "name": "모터 기둥",
+      "params": {
+        "length": 100
+      },
+      "position": [
+        230,
+        170,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        90
+      ]
+    },
+    {
+      "id": "holder-roller",
+      "asset": "bearing-holder-6900",
+      "name": "롤러축 베어링 홀더",
+      "params": {},
+      "position": [
+        -185,
+        180,
+        -40
+      ],
+      "rotation": [
+        0,
+        0,
         0
       ]
     },
@@ -187,12 +257,12 @@
       "asset": "shaft-10",
       "name": "롤러축",
       "params": {
-        "length": 490
+        "length": 428
       },
       "position": [
-        0,
-        161,
-        -25
+        16,
+        180,
+        -40
       ],
       "rotation": [
         0,
@@ -201,34 +271,34 @@
       ]
     },
     {
-      "id": "holder-roller-l",
-      "asset": "bearing-holder-6900",
-      "name": "롤러축 베어링 홀더 왼쪽",
+      "id": "mbracket-roller",
+      "asset": "motor-bracket-37",
+      "name": "롤러축 모터 브라켓",
       "params": {},
       "position": [
-        -220,
-        161,
-        -25
+        246,
+        180,
+        -10
+      ],
+      "rotation": [
+        90,
+        0,
+        -180
+      ]
+    },
+    {
+      "id": "motor-roller",
+      "asset": "motor-37",
+      "name": "롤러축 모터",
+      "params": {},
+      "position": [
+        258,
+        180,
+        -40
       ],
       "rotation": [
         0,
         180,
-        0
-      ]
-    },
-    {
-      "id": "holder-roller-r",
-      "asset": "bearing-holder-6900",
-      "name": "롤러축 베어링 홀더 오른쪽",
-      "params": {},
-      "position": [
-        220,
-        161,
-        -25
-      ],
-      "rotation": [
-        0,
-        0,
         0
       ]
     },
@@ -238,9 +308,9 @@
       "name": "롤러축 커플링",
       "params": {},
       "position": [
-        257.5,
-        161,
-        -25
+        230,
+        180,
+        -40
       ],
       "rotation": [
         0,
@@ -249,18 +319,18 @@
       ]
     },
     {
-      "id": "motor-roller",
-      "asset": "motor-37",
-      "name": "롤러축 모터",
+      "id": "holder-brush",
+      "asset": "bearing-holder-6900",
+      "name": "브러시축 베어링 홀더",
       "params": {},
       "position": [
-        300,
-        161,
-        -25
+        -185,
+        180,
+        40
       ],
       "rotation": [
         0,
-        180,
+        0,
         0
       ]
     },
@@ -269,12 +339,12 @@
       "asset": "shaft-10",
       "name": "브러시축",
       "params": {
-        "length": 490
+        "length": 428
       },
       "position": [
-        0,
-        161,
-        25
+        16,
+        180,
+        40
       ],
       "rotation": [
         0,
@@ -283,34 +353,34 @@
       ]
     },
     {
-      "id": "holder-brush-l",
-      "asset": "bearing-holder-6900",
-      "name": "브러시축 베어링 홀더 왼쪽",
+      "id": "mbracket-brush",
+      "asset": "motor-bracket-37",
+      "name": "브러시축 모터 브라켓",
       "params": {},
       "position": [
-        -220,
-        161,
-        25
+        246,
+        180,
+        10
+      ],
+      "rotation": [
+        -90,
+        0,
+        -180
+      ]
+    },
+    {
+      "id": "motor-brush",
+      "asset": "motor-37",
+      "name": "브러시축 모터",
+      "params": {},
+      "position": [
+        258,
+        180,
+        40
       ],
       "rotation": [
         0,
         180,
-        0
-      ]
-    },
-    {
-      "id": "holder-brush-r",
-      "asset": "bearing-holder-6900",
-      "name": "브러시축 베어링 홀더 오른쪽",
-      "params": {},
-      "position": [
-        220,
-        161,
-        25
-      ],
-      "rotation": [
-        0,
-        0,
         0
       ]
     },
@@ -320,29 +390,13 @@
       "name": "브러시축 커플링",
       "params": {},
       "position": [
-        257.5,
-        161,
-        25
-      ],
-      "rotation": [
-        0,
-        0,
-        0
-      ]
-    },
-    {
-      "id": "motor-brush",
-      "asset": "motor-37",
-      "name": "브러시축 모터",
-      "params": {},
-      "position": [
-        300,
-        161,
-        25
-      ],
-      "rotation": [
-        0,
+        230,
         180,
+        40
+      ],
+      "rotation": [
+        0,
+        0,
         0
       ]
     },
@@ -353,8 +407,8 @@
       "params": {},
       "position": [
         -140,
-        161,
-        -25
+        180,
+        -40
       ],
       "rotation": [
         0,
@@ -371,8 +425,8 @@
       },
       "position": [
         -140,
-        161,
-        25
+        180,
+        40
       ],
       "rotation": [
         0,
@@ -387,8 +441,8 @@
       "params": {},
       "position": [
         140,
-        161,
-        -25
+        180,
+        -40
       ],
       "rotation": [
         0,
@@ -405,8 +459,8 @@
       },
       "position": [
         140,
-        161,
-        25
+        180,
+        40
       ],
       "rotation": [
         0,
@@ -421,7 +475,7 @@
       "params": {},
       "position": [
         0,
-        173.4,
+        175.6,
         -80
       ],
       "rotation": [

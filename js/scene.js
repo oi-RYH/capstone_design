@@ -1,7 +1,7 @@
 // 뷰어와 편집 페이지가 함께 쓰는 3D 장면 코드
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { ASSET_MAP, resolveParams } from './assets.js';
+import { ASSET_MAP, HARDWARE, resolveParams } from './assets.js';
 
 export const SCENE_URL = 'scene.json';
 
@@ -179,4 +179,32 @@ export function pickObject(view, clientX, clientY) {
     if (o) return o;
   }
   return null;
+}
+
+// ---------------- 자동 체결 부품 그리기 ----------------
+const hwProto = {};
+export function renderHardware(view, list) {
+  let g = view.scene.getObjectByName('hardware');
+  if (!g) { g = new THREE.Group(); g.name = 'hardware'; view.scene.add(g); }
+  g.clear();
+  for (const h of list) {
+    if (!hwProto[h.type]) {
+      hwProto[h.type] = HARDWARE[h.type].build();
+      hwProto[h.type].traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+    }
+    const o = hwProto[h.type].clone();
+    o.matrixAutoUpdate = false;
+    o.matrix.copy(h.matrix);
+    g.add(o);
+  }
+}
+
+// ---------------- 경고 표시 (빨간색) ----------------
+const RED = new THREE.MeshStandardMaterial({ color: 0xe0453a, emissive: 0x5a0d08, metalness: 0.1, roughness: 0.6 });
+export function markProblem(group, bad) {
+  group.traverse(o => {
+    if (!o.isMesh) return;
+    if (!o.userData.baseMat) o.userData.baseMat = o.material;
+    o.material = bad ? RED : o.userData.baseMat;
+  });
 }
