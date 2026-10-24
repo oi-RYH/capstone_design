@@ -514,7 +514,11 @@ $('del').onclick = deleteSelected;
 function renderPairBox(e) {
   const box = $('pair');
   const second = state.objects.find(o => o.id === state.secondId);
-  if (!canGear(e)) { box.hidden = true; return; }
+  if (!canGear(e)) {
+    box.hidden = !second;
+    if (second) box.innerHTML = '<p class="help">기어는 샤프트나 모터 출력축끼리만 연결할 수 있습니다. 먼저 샤프트나 모터를 클릭한 뒤, 다른 샤프트나 모터를 Shift+클릭하세요.</p>';
+    return;
+  }
   box.hidden = false;
   if (!second) {
     box.innerHTML = '<p class="help">Shift+클릭으로 두 번째 샤프트나 모터를 고르면 기어로 연결할 수 있습니다.</p>';
